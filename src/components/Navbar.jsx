@@ -16,42 +16,69 @@ export default function Navbar() {
   const [visible, setVisible] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const scrollLockRef = useRef(false);
+  const clickedRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 1200);
 
-    const onScroll = () => {
-      setScrolled(window.scrollY > 80);
-      // Skip scroll detection if user just clicked a nav item
-      if (scrollLockRef.current) return;
-
-      const sections = navItems.map(n => document.getElementById(n.id));
-      // Use a small offset from viewport top — the section whose top
-      // has passed this line is the "current" section
-      const threshold = window.scrollY + 150;
-      for (let i = sections.length - 1; i >= 0; i--) {
-        if (sections[i] && sections[i].offsetTop <= threshold) {
-          setActive(navItems[i].id);
-          break;
-        }
-      }
-    };
-
+    // Scroll shadow detection
+    const onScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => { clearTimeout(timer); window.removeEventListener('scroll', onScroll); };
+
+    // IntersectionObserver for section detection
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // If user just clicked, ignore observer until scroll settles
+        if (clickedRef.current) return;
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActive(entry.target.id);
+          }
+        });
+      },
+      {
+        // Trigger when section crosses a line 30% from top of viewport
+        rootMargin: '-30% 0px -65% 0px',
+      }
+    );
+
+    // Observe all sections
+    navItems.forEach((item) => {
+      const el = document.getElementById(item.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('scroll', onScroll);
+      observer.disconnect();
+    };
   }, []);
 
   const scrollTo = (id) => {
     // Immediately highlight the clicked item
     setActive(id);
-    // Lock scroll detection so it doesn't override during smooth scroll
-    scrollLockRef.current = true;
-    setTimeout(() => { scrollLockRef.current = false; }, 1200);
-
+    // Block observer from overriding during smooth scroll
+    clickedRef.current = id;
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
     setMobileOpen(false);
+
+    // Re-enable observer after scroll finishes
+    const checkDone = () => {
+      const rect = el?.getBoundingClientRect();
+      // Section top is near viewport top = scroll finished
+      if (rect && Math.abs(rect.top) < 5) {
+        clickedRef.current = null;
+      } else {
+        requestAnimationFrame(checkDone);
+      }
+    };
+    // Start checking after a short delay
+    setTimeout(() => requestAnimationFrame(checkDone), 300);
+    // Fallback: always unlock after 2s
+    setTimeout(() => { clickedRef.current = null; }, 2000);
   };
 
   return (
