@@ -48,7 +48,7 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex }) {
     >
       {/* ─── Timeline spine ─── */}
       <div style={{
-        position: 'relative', width: 50, flexShrink: 0,
+        position: 'relative', width: 36, flexShrink: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
         {/* Vertical beam */}
@@ -109,19 +109,19 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex }) {
         />
 
         {/* Main content */}
-        <div style={{ padding: '20px 22px' }}>
+        <div style={{ padding: '16px 16px' }}>
           {/* Header row */}
           <div style={{
             display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
             gap: 12, marginBottom: 10, flexWrap: 'wrap',
           }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4,
               }}>
                 <span style={{ fontSize: '1.2rem' }}>{exp.icon}</span>
                 <h3 style={{
-                  fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.05rem',
+                  fontFamily: 'Space Grotesk, sans-serif', fontSize: 'clamp(0.9rem, 2.5vw, 1.05rem)',
                   fontWeight: 700, color: '#f0f0f5',
                 }}>{exp.role}</h3>
               </div>

@@ -3,6 +3,17 @@ import { motion, useInView, useMotionValue, useSpring, useTransform } from 'fram
 
 const GITHUB_USERNAME = 'ESTAS-crypto';
 
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 /* ─── Bento Card with spotlight ─── */
 function BentoCard({ children, span = 1, delay = 0, inView, color = '#8b5cf6' }) {
   const cardRef = useRef(null);
@@ -26,7 +37,7 @@ function BentoCard({ children, span = 1, delay = 0, inView, color = '#8b5cf6' })
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        gridColumn: `span ${span}`,
+        gridColumn: span > 1 ? undefined : undefined,
         position: 'relative', borderRadius: 20, overflow: 'hidden',
         background: 'rgba(12,11,20,0.9)',
         border: `1px solid ${hovered ? color + '33' : 'rgba(255,255,255,0.06)'}`,
@@ -129,6 +140,7 @@ export default function About() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [ghStats, setGhStats] = useState({ repos: 0, followers: 0 });
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetch(`https://api.github.com/users/${GITHUB_USERNAME}`)
@@ -179,7 +191,7 @@ export default function About() {
         {/* ─── Bento Grid ─── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
           gap: 16,
         }}>
           {/* Card 1: Bio */}
@@ -280,7 +292,10 @@ export default function About() {
           </BentoCard>
 
           {/* Card 3: Skills Rings — full width */}
-          <BentoCard span={2} delay={0.3} inView={inView} color="#ec4899">
+          {/* Card 3: Skills Rings — full width on desktop */}
+          <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+          <BentoCard span={1} delay={0.3} inView={inView} color="#ec4899">
+            {/* Always full width via wrapper div */}
             <div style={{ padding: '24px 22px' }}>
               <div style={{
                 fontSize: '0.7rem', fontFamily: 'JetBrains Mono, monospace',
@@ -288,8 +303,10 @@ export default function About() {
                 textTransform: 'uppercase', letterSpacing: '0.15em',
               }}>🎯 Tech Stack</div>
               <div style={{
-                display: 'flex', flexWrap: 'wrap',
-                justifyContent: 'center', gap: 20,
+                display: 'grid',
+                gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)',
+                gap: isMobile ? 12 : 20,
+                justifyItems: 'center',
               }}>
                 {skills.map((s, i) => (
                   <SkillRing key={s.name} {...s} delay={0.4 + i * 0.08} inView={inView} />
@@ -297,6 +314,7 @@ export default function About() {
               </div>
             </div>
           </BentoCard>
+          </div>
         </div>
       </div>
     </section>
