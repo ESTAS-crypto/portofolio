@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
@@ -16,31 +16,26 @@ export default function Navbar() {
   const [visible, setVisible] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const scrollLockRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 1200);
 
     const onScroll = () => {
       setScrolled(window.scrollY > 80);
+      // Skip scroll detection if user just clicked a nav item
+      if (scrollLockRef.current) return;
+
       const sections = navItems.map(n => document.getElementById(n.id));
-      // Find the section whose top is closest to (but above) the viewport center
-      const viewportCenter = window.scrollY + window.innerHeight / 2;
-      let closest = null;
-      let closestDist = Infinity;
+      // Use a small offset from viewport top — the section whose top
+      // has passed this line is the "current" section
+      const threshold = window.scrollY + 150;
       for (let i = sections.length - 1; i >= 0; i--) {
-        if (!sections[i]) continue;
-        const top = sections[i].offsetTop;
-        const bottom = top + sections[i].offsetHeight;
-        // Section must be at least partially above viewport center
-        if (top <= viewportCenter && bottom > window.scrollY) {
-          const dist = Math.abs(viewportCenter - (top + sections[i].offsetHeight / 2));
-          if (dist < closestDist) {
-            closestDist = dist;
-            closest = navItems[i].id;
-          }
+        if (sections[i] && sections[i].offsetTop <= threshold) {
+          setActive(navItems[i].id);
+          break;
         }
       }
-      if (closest) setActive(closest);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -48,6 +43,12 @@ export default function Navbar() {
   }, []);
 
   const scrollTo = (id) => {
+    // Immediately highlight the clicked item
+    setActive(id);
+    // Lock scroll detection so it doesn't override during smooth scroll
+    scrollLockRef.current = true;
+    setTimeout(() => { scrollLockRef.current = false; }, 1200);
+
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
     setMobileOpen(false);
