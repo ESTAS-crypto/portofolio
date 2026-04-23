@@ -77,11 +77,11 @@ export default function Navbar() {
                 width: 36, height: 36, borderRadius: 10,
                 background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1rem', fontWeight: 800, color: '#fff',
+                fontSize: '0.85rem', fontWeight: 800, color: '#fff',
                 boxShadow: '0 0 20px rgba(139,92,246,0.3)',
-              }}>P</div>
+              }}>EA</div>
               <span style={{ color: '#f0f0f5' }}>
-                Portfolio<span style={{ color: '#8b5cf6' }}>.</span>
+                Evan<span style={{ color: '#8b5cf6' }}>.</span>
               </span>
             </motion.div>
 

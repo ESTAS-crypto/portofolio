@@ -22,7 +22,13 @@ export default function Footer() {
           fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600,
           fontSize: '0.9rem', marginBottom: 8,
         }}>
-          Designed & Built with{' '}
+          Designed & Built by{' '}
+          <a
+            href="https://github.com/ESTAS-crypto"
+            target="_blank" rel="noopener noreferrer"
+            style={{ color: '#c084fc', fontWeight: 700 }}
+          >Evan Atharasya</a>
+          {' '}with{' '}
           <motion.span
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -33,7 +39,7 @@ export default function Footer() {
           fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem',
           color: 'var(--text-tertiary)',
         }}>
-          © {new Date().getFullYear()} — All rights reserved
+          © {new Date().getFullYear()} Evan Atharasya — All rights reserved
         </div>
       </motion.div>
     </footer>
