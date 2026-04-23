@@ -153,6 +153,16 @@ a { cursor: none; }
   100% { background-position: 0% 50%; }
 }
 
+/* Animated border rotation for project cards */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes borderRotate {
+  to { --angle: 360deg; }
+}
+
 /* ═══ NAVIGATION RESPONSIVE ═══ */
 .nav-desktop { display: flex !important; }
 .nav-mobile { display: none !important; }
