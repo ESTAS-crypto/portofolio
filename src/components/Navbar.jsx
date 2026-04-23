@@ -23,13 +23,24 @@ export default function Navbar() {
     const onScroll = () => {
       setScrolled(window.scrollY > 80);
       const sections = navItems.map(n => document.getElementById(n.id));
-      const scrollPos = window.scrollY + window.innerHeight / 3;
+      // Find the section whose top is closest to (but above) the viewport center
+      const viewportCenter = window.scrollY + window.innerHeight / 2;
+      let closest = null;
+      let closestDist = Infinity;
       for (let i = sections.length - 1; i >= 0; i--) {
-        if (sections[i] && sections[i].offsetTop <= scrollPos) {
-          setActive(navItems[i].id);
-          break;
+        if (!sections[i]) continue;
+        const top = sections[i].offsetTop;
+        const bottom = top + sections[i].offsetHeight;
+        // Section must be at least partially above viewport center
+        if (top <= viewportCenter && bottom > window.scrollY) {
+          const dist = Math.abs(viewportCenter - (top + sections[i].offsetHeight / 2));
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = navItems[i].id;
+          }
         }
       }
+      if (closest) setActive(closest);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
