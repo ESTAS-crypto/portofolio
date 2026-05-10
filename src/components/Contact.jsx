@@ -4,7 +4,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { SOCIAL_ICON_MAP } from './Icons';
 import { SOCIAL_LINKS } from '../constants';
 
-const WEB3FORMS_KEY = 'df25c117-8be7-4469-ba6e-4cbab91cdc4b';
+const WEB3FORMS_KEY = 'df25c117-8be7-4469-ba8e-4cbab91cdc4b';
 
 /* Build socials with Icon components from the map */
 const socials = SOCIAL_LINKS.map(s => ({ ...s, Icon: SOCIAL_ICON_MAP[s.name] }));
