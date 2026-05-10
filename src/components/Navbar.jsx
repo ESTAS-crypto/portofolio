@@ -145,8 +145,9 @@ export default function Navbar() {
               </span>
             </motion.div>
 
-            {/* Desktop Links */}
+            {/* Desktop Links — centered absolutely */}
             <nav style={{
+              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
               display: 'flex', alignItems: 'center', gap: 2,
               padding: '5px 6px', borderRadius: 9999,
               background: 'rgba(255,255,255,0.03)',
@@ -325,6 +326,30 @@ export default function Navbar() {
                 }}>{navLabels[item.id] || item.label}</span>
               </motion.button>
             ))}
+
+            {/* Language Toggle on Mobile */}
+            <motion.button
+              onClick={toggleLang}
+              whileTap={{ scale: 0.8 }}
+              style={{
+                position: 'relative', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: 3, padding: '8px 4px',
+                borderRadius: 14, cursor: 'pointer',
+                color: '#c084fc',
+                background: 'rgba(139,92,246,0.08)',
+                flex: '1 1 0',
+              }}
+            >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span style={{
+                fontSize: '0.52rem', fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}>{lang === 'en' ? 'ID' : 'EN'}</span>
+            </motion.button>
           </motion.nav>
         </>
       )}
