@@ -141,7 +141,7 @@ export default function Navbar() {
                 <span style={{ position: 'relative', zIndex: 1 }}>EA</span>
               </motion.div>
               <span style={{ color: '#f0f0f5' }}>
-                Evan<span style={{ color: '#8b5cf6' }}>.</span>
+                Evan <span style={{ color: '#8b5cf6', fontWeight: 600 }}>Atharasya</span>
               </span>
             </motion.div>
 
