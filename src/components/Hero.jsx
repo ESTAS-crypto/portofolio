@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../hooks/useLanguage';
 import { HERO_ROLES, PROFILE } from '../constants';
 
 const roles = HERO_ROLES;
@@ -100,6 +101,7 @@ export default function Hero() {
   const [isDeleting, setIsDeleting] = useState(false);
   const containerRef = useRef(null);
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const bgX = useSpring(useTransform(mouseX, [0, 1], [-8, 8]), { stiffness: 50, damping: 20 });
@@ -178,7 +180,7 @@ export default function Hero() {
             boxShadow: '0 0 12px rgba(16,185,129,0.6)',
             animation: 'glow-pulse 2s ease-in-out infinite',
           }} />
-          Available for work
+          {t.hero.available}
         </motion.div>
 
         {/* Name with reveal */}
@@ -191,7 +193,7 @@ export default function Hero() {
             color: 'var(--text-secondary)', marginBottom: isMobile ? 8 : 12, letterSpacing: '0.1em',
           }}
         >
-          Hi, I'm <span style={{ color: '#c084fc', fontWeight: 600 }}>Evan Atharasya</span>
+          {t.hero.greeting} <span style={{ color: '#c084fc', fontWeight: 600 }}>{PROFILE.name}</span>
         </motion.p>
 
         <h1 style={{
@@ -201,7 +203,7 @@ export default function Hero() {
           wordBreak: 'break-word', overflowWrap: 'break-word',
         }}>
           <span style={{ display: 'block', overflow: 'hidden' }}>
-            {"Crafting Digital".split('').map((char, i) => (
+            {t.hero.line1.split('').map((char, i) => (
               <motion.span
                 key={i}
                 initial={{ y: '100%', opacity: 0 }}
@@ -212,7 +214,7 @@ export default function Hero() {
             ))}
           </span>
           <span style={{ display: 'block', overflow: 'hidden' }}>
-            {"Experiences".split('').map((char, i) => (
+            {t.hero.line2.split('').map((char, i) => (
               <motion.span
                 key={i}
                 initial={{ y: '100%', opacity: 0 }}
@@ -265,10 +267,10 @@ export default function Hero() {
           }}
         >
           <MagneticButton href="#projects" primary>
-            View My Work <span>→</span>
+            {t.hero.viewWork}
           </MagneticButton>
           <MagneticButton href="#contact">
-            Get In Touch
+            {t.hero.getInTouch}
           </MagneticButton>
         </motion.div>
       </div>
@@ -287,7 +289,7 @@ export default function Hero() {
           <span style={{
             fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace',
             color: 'var(--text-tertiary)', letterSpacing: '0.15em', textTransform: 'uppercase',
-          }}>Scroll</span>
+          }}>{t.hero.scroll}</span>
           <motion.div
             animate={{ y: [0, 6, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}

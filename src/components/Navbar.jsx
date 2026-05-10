@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavIcon, SOCIAL_ICON_MAP } from './Icons';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../constants';
+import { useLanguage } from '../hooks/useLanguage';
 
 /* Build socialLinks with Icon components from the map */
 const socialLinks = SOCIAL_LINKS.map(s => ({ ...s, Icon: SOCIAL_ICON_MAP[s.name] }));
@@ -13,6 +14,13 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const clickedRef = useRef(null);
+  const { t, lang, toggleLang } = useLanguage();
+
+  /* Map nav item IDs to translated labels */
+  const navLabels = {
+    home: t.nav.home, about: t.nav.about, projects: t.nav.projects,
+    skills: t.nav.skills, experience: t.nav.experience, contact: t.nav.contact,
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 1200);
@@ -175,7 +183,7 @@ export default function Navbar() {
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
-                  <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+                  <span style={{ position: 'relative', zIndex: 1 }}>{navLabels[item.id] || item.label}</span>
                 </motion.button>
               ))}
             </nav>
@@ -216,6 +224,24 @@ export default function Navbar() {
                 </motion.a>
               ))}
 
+              {/* Language Toggle */}
+              <motion.button
+                onClick={toggleLang}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title={lang === 'en' ? 'Switch to Indonesian' : 'Ganti ke Inggris'}
+                style={{
+                  padding: '6px 12px', borderRadius: 9999,
+                  background: 'rgba(139,92,246,0.1)',
+                  border: '1px solid rgba(139,92,246,0.2)',
+                  color: '#c084fc', fontWeight: 700, fontSize: '0.72rem',
+                  cursor: 'pointer', letterSpacing: '0.05em',
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}
+              >
+                {lang === 'en' ? 'ID' : 'EN'}
+              </motion.button>
+
               <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 6px' }} />
 
               <motion.a
@@ -241,7 +267,7 @@ export default function Navbar() {
                     pointerEvents: 'none',
                   }}
                 />
-                <span style={{ position: 'relative', zIndex: 1 }}>Let's Talk</span>
+                <span style={{ position: 'relative', zIndex: 1 }}>{t.nav.letsTalk}</span>
                 <span style={{ position: 'relative', zIndex: 1, fontSize: '0.85rem' }}>→</span>
               </motion.a>
             </div>
@@ -296,7 +322,7 @@ export default function Navbar() {
                 <span style={{
                   fontSize: '0.52rem', fontWeight: active === item.id ? 600 : 500,
                   letterSpacing: active === item.id ? '0.02em' : '0',
-                }}>{item.label}</span>
+                }}>{navLabels[item.id] || item.label}</span>
               </motion.button>
             ))}
           </motion.nav>

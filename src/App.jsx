@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LanguageProvider } from './hooks/useLanguage';
 import CustomCursor from './components/CustomCursor';
 import Hero from './components/Hero';
 import Navbar from './components/Navbar';
@@ -20,7 +21,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <LanguageProvider>
       {!isMobile && <CustomCursor />}
       <Navbar />
       <main>
@@ -32,6 +33,6 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
-    </>
+    </LanguageProvider>
   );
 }

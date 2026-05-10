@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
+import { useLanguage } from '../hooks/useLanguage';
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer style={{
       position: 'relative', padding: '40px 24px 50px', textAlign: 'center',
@@ -22,7 +25,7 @@ export default function Footer() {
           fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600,
           fontSize: '0.9rem', marginBottom: 8,
         }}>
-          Designed & Built by{' '}
+          {t.footer.designed}{' '}
           <a
             href="https://github.com/ESTAS-crypto"
             target="_blank" rel="noopener noreferrer"
@@ -39,7 +42,7 @@ export default function Footer() {
           fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem',
           color: 'var(--text-tertiary)',
         }}>
-          © {new Date().getFullYear()} Evan Atharasya — All rights reserved
+          © {new Date().getFullYear()} Evan Atharasya — {t.footer.rights}
         </div>
       </motion.div>
     </footer>

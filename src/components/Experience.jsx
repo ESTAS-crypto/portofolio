@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../hooks/useLanguage';
 import { EXPERIENCES } from '../constants';
 
 const experiences = EXPERIENCES;
@@ -193,6 +194,7 @@ export default function Experience() {
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const [activeIndex, setActiveIndex] = useState(null);
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   return (
     <section id="experience" style={{ position: 'relative', padding: isMobile ? '60px 16px' : '100px 20px' }}>
@@ -211,12 +213,12 @@ export default function Experience() {
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: 50 }}
         >
-          <div className="section-label">◷ Experience</div>
+          <div className="section-label">{t.experience.label}</div>
           <h2 className="section-title">
-            My <span className="text-gradient">Journey</span>
+            {t.experience.title1} <span className="text-gradient">{t.experience.title2}</span>
           </h2>
           <p className="section-description" style={{ margin: '0 auto' }}>
-            A timeline of growth — click any card to reveal highlights.
+            {t.experience.subtitle}
           </p>
         </motion.div>
 

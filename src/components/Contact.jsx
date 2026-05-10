@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../hooks/useLanguage';
 import { SOCIAL_ICON_MAP } from './Icons';
 import { SOCIAL_LINKS } from '../constants';
 
@@ -120,11 +121,11 @@ function SocialCard({ social, delay, isMobile }) {
 }
 
 /* ── Status toast ── */
-function StatusToast({ status }) {
+function StatusToast({ status, t }) {
   const config = {
-    sending: { icon: '⏳', text: 'Sending message...', bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.3)', color: '#c084fc' },
-    success: { icon: '✅', text: 'Message sent! I\'ll get back to you soon.', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)', color: '#10b981' },
-    error: { icon: '❌', text: 'Failed to send. Try again or email me directly.', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', color: '#ef4444' },
+    sending: { icon: '⏳', text: t.contact.sendingMsg, bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.3)', color: '#c084fc' },
+    success: { icon: '✅', text: t.contact.successMsg, bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)', color: '#10b981' },
+    error: { icon: '❌', text: t.contact.errorMsg, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', color: '#ef4444' },
   };
   const c = config[status];
   if (!c) return null;
@@ -153,6 +154,7 @@ export default function Contact() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState(null); // null | 'sending' | 'success' | 'error'
@@ -209,12 +211,12 @@ export default function Contact() {
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: 40 }}
         >
-          <div className="section-label">✉ Contact</div>
+          <div className="section-label">{t.contact.label}</div>
           <h2 className="section-title">
-            Let's <span className="text-gradient">Connect</span>
+            {t.contact.title1} <span className="text-gradient">{t.contact.title2}</span>
           </h2>
           <p className="section-description" style={{ margin: '0 auto' }}>
-            Have a project in mind? I'd love to hear from you.
+            {t.contact.subtitle}
           </p>
         </motion.div>
 
@@ -226,10 +228,10 @@ export default function Contact() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
             gap: 18,
           }}>
-            <AnimatedInput label="Your Name" name="name" delay={0.1} value={form.name} onChange={handleChange} />
-            <AnimatedInput label="Your Email" name="email" type="email" delay={0.15} value={form.email} onChange={handleChange} />
+            <AnimatedInput label={t.contact.name} name="name" delay={0.1} value={form.name} onChange={handleChange} />
+            <AnimatedInput label={t.contact.email} name="email" type="email" delay={0.15} value={form.email} onChange={handleChange} />
           </div>
-          <AnimatedInput label="Your Message" name="message" isTextarea delay={0.2} value={form.message} onChange={handleChange} />
+          <AnimatedInput label={t.contact.message} name="message" isTextarea delay={0.2} value={form.message} onChange={handleChange} />
 
           <motion.button
             type="submit"
@@ -264,13 +266,13 @@ export default function Contact() {
               }}
             />
             <span style={{ position: 'relative', zIndex: 1 }}>
-              {status === 'sending' ? 'Sending...' : 'Send Message →'}
+              {status === 'sending' ? t.contact.sending : t.contact.send}
             </span>
           </motion.button>
 
           {/* Status Toast */}
           <AnimatePresence>
-            {status && <StatusToast status={status} />}
+            {status && <StatusToast status={status} t={t} />}
           </AnimatePresence>
         </form>
 
@@ -287,7 +289,7 @@ export default function Contact() {
               letterSpacing: '0.15em',
             }}
           >
-            Or find me on
+            {t.contact.findMe}
           </motion.div>
 
           <div style={{

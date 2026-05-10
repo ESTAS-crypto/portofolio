@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../hooks/useLanguage';
 import { fetchGitHubData } from '../hooks/useGitHub';
 import { SKILLS } from '../constants';
 
@@ -131,6 +132,7 @@ export default function About() {
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [ghStats, setGhStats] = useState({ repos: 0, followers: 0 });
   const isMobile = useIsMobile(640);
+  const { t } = useLanguage();
   const skills = SKILLS;
 
   useEffect(() => {
@@ -140,10 +142,10 @@ export default function About() {
   }, []);
 
   const stats = [
-    { value: ghStats.repos, suffix: '', label: 'GitHub Repos', color: '#8b5cf6', icon: '📦' },
-    { value: ghStats.followers, suffix: '', label: 'Followers', color: '#06b6d4', icon: '👥' },
-    { value: 2, suffix: '+', label: 'Years Coding', color: '#10b981', icon: '⏳' },
-    { value: 99, suffix: '%', label: 'Passion', color: '#ec4899', icon: '🔥' },
+    { value: ghStats.repos, suffix: '', label: t.about.repos, color: '#8b5cf6', icon: '📦' },
+    { value: ghStats.followers, suffix: '', label: t.about.followers, color: '#06b6d4', icon: '👥' },
+    { value: 2, suffix: '+', label: t.about.yearsCoding, color: '#10b981', icon: '⏳' },
+    { value: 99, suffix: '%', label: t.about.passion, color: '#ec4899', icon: '🔥' },
   ];
 
   return (
@@ -163,9 +165,9 @@ export default function About() {
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: isMobile ? 24 : 40 }}
         >
-          <div className="section-label">✦ About Me</div>
+          <div className="section-label">{t.about.label}</div>
           <h2 className="section-title">
-            Passionate About <span className="text-gradient">Building</span>
+            {t.about.title1} <span className="text-gradient">{t.about.title2}</span>
           </h2>
         </motion.div>
 
@@ -201,15 +203,14 @@ export default function About() {
                       width: 6, height: 6, borderRadius: '50%', background: '#10b981',
                       boxShadow: '0 0 8px rgba(16,185,129,0.6)',
                     }} />
-                    Available for work
+                    {t.hero.available}
                   </div>
                 </div>
               </div>
               <p style={{
                 color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6,
               }}>
-                I'm a creative developer who blends design with code.
-                Building modern web experiences that are fast, accessible, and visually stunning.
+                {t.about.bio}
               </p>
               {/* Terminal decoration */}
               <div style={{

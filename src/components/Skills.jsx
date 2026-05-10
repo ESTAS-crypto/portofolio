@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { useLanguage } from '../hooks/useLanguage';
 import { TECH_STACK } from '../constants';
 
 const techStack = TECH_STACK;
@@ -51,6 +52,7 @@ function MarqueeRow({ items, direction = 'left', speed = 30 }) {
 export default function Skills() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
+  const { t } = useLanguage();
 
   const row1 = techStack.slice(0, 8);
   const row2 = techStack.slice(8);
@@ -64,12 +66,12 @@ export default function Skills() {
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: 40 }}
         >
-          <div className="section-label">⬡ Tech Stack</div>
+          <div className="section-label">{t.skills.label}</div>
           <h2 className="section-title">
-            Tools I <span className="text-gradient">Master</span>
+            {t.skills.title1} <span className="text-gradient">{t.skills.title2}</span>
           </h2>
           <p className="section-description" style={{ margin: '0 auto' }}>
-            Technologies and frameworks I use to bring ideas to life.
+            {t.skills.subtitle}
           </p>
         </motion.div>
       </div>

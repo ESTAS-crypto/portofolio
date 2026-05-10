@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useLanguage } from '../hooks/useLanguage';
 import { fetchGitHubData } from '../hooks/useGitHub';
 import { GITHUB_USERNAME, LANG_META } from '../constants';
 
@@ -229,6 +230,7 @@ export default function Projects() {
   const [error, setError] = useState(false);
 
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   useEffect(() => {
     async function loadData() {
@@ -263,17 +265,17 @@ export default function Projects() {
           transition={{ duration: 0.8 }}
           style={{ textAlign: 'center', marginBottom: 50 }}
         >
-          <div className="section-label">◫ Projects</div>
+          <div className="section-label">{t.projects.label}</div>
           <h2 className="section-title">
-            Featured <span className="text-gradient">Work</span>
+            {t.projects.title1} <span className="text-gradient">{t.projects.title2}</span>
           </h2>
           <p className="section-description" style={{ margin: '0 auto' }}>
             {error
-              ? 'Fetched live from GitHub — check back in a moment.'
-              : `Fetched live from GitHub — ${totalRepos} repositories and counting.`}
+              ? t.projects.errorSubtitle
+              : `${t.projects.subtitle} ${totalRepos} ${t.projects.repoCount}`}
             <br />
             <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              {error ? 'Rate limit reached temporarily' : 'Hover to focus • Click to explore'}
+              {error ? t.projects.errorHint : t.projects.hover}
             </span>
           </p>
         </motion.div>
@@ -303,7 +305,7 @@ export default function Projects() {
           }}>
             <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 16 }}>
-              GitHub API rate limit reached. Try again in a few minutes.
+              {t.projects.errorMessage}
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <motion.button
@@ -323,7 +325,7 @@ export default function Projects() {
                   background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
                   color: '#c084fc', fontSize: '0.85rem', fontWeight: 600,
                 }}
-              >Retry</motion.button>
+              >{t.projects.retry}</motion.button>
               <motion.a
                 href={`https://github.com/${GITHUB_USERNAME}?tab=repositories`}
                 target="_blank" rel="noopener noreferrer"
@@ -334,7 +336,7 @@ export default function Projects() {
                   background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
                   color: '#f0f0f5', fontSize: '0.85rem', fontWeight: 600,
                 }}
-              >View on GitHub →</motion.a>
+              >{t.projects.viewOnGithub}</motion.a>
             </div>
           </div>
         ) : (
@@ -377,7 +379,7 @@ export default function Projects() {
               transition: 'box-shadow 0.3s',
             }}
           >
-            Explore{totalRepos > 0 ? ` all ${totalRepos}` : ''} repos
+            {t.projects.explore}{totalRepos > 0 ? ` ${t.projects.allRepos} ${totalRepos}` : ''} {t.projects.repos}
             <span>→</span>
           </motion.a>
         </motion.div>
