@@ -204,8 +204,9 @@ export default function Hero() {
 
         <h1 style={{
           fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800,
-          fontSize: isMobile ? 'clamp(1.8rem, 9vw, 2.8rem)' : 'clamp(2.2rem, 7vw, 5rem)', lineHeight: 1.05,
+          fontSize: isMobile ? 'clamp(1.6rem, 8vw, 2.5rem)' : 'clamp(2.2rem, 7vw, 5rem)', lineHeight: 1.05,
           marginBottom: isMobile ? 14 : 20, letterSpacing: '-0.03em',
+          wordBreak: 'break-word', overflowWrap: 'break-word',
         }}>
           <span style={{ display: 'block', overflow: 'hidden' }}>
             {"Crafting Digital".split('').map((char, i) => (
