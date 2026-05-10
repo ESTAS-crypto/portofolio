@@ -1,29 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { fetchGitHubData } from '../hooks/useGitHub';
+import { GITHUB_USERNAME, LANG_META } from '../constants';
 
-const GITHUB_USERNAME = 'ESTAS-crypto';
-
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [breakpoint]);
-  return isMobile;
-}
-
-const langMeta = {
-  JavaScript: { color: '#f7df1e', icon: '⚡' },
-  TypeScript: { color: '#3178c6', icon: '🔷' },
-  Python: { color: '#3572A5', icon: '🐍' },
-  HTML: { color: '#e34c26', icon: '🌐' },
-  CSS: { color: '#563d7c', icon: '🎨' },
-  PHP: { color: '#777BB4', icon: '🐘' },
-  Java: { color: '#b07219', icon: '☕' },
-  default: { color: '#8b5cf6', icon: '📦' },
-};
+const langMeta = LANG_META;
 
 /* ─── Animated gradient border component ─── */
 function AnimatedBorder({ active, color }) {
@@ -245,31 +226,24 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [totalRepos, setTotalRepos] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [error, setError] = useState(false);
 
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    async function fetchRepos() {
+    async function loadData() {
       try {
-        const profileRes = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`);
-        const profile = await profileRes.json();
+        const { profile, repos: filteredRepos } = await fetchGitHubData();
         setTotalRepos(profile.public_repos || 0);
-
-        const res = await fetch(
-          `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=pushed&per_page=8&direction=desc`
-        );
-        const data = await res.json();
-        const filtered = data
-          .filter(r => r.name !== 'portofolio' && r.name !== GITHUB_USERNAME && r.size > 0)
-          .slice(0, 6);
-        setRepos(filtered);
+        setRepos(filteredRepos);
       } catch (err) {
         console.error('Failed to fetch repos:', err);
+        setError(true);
       } finally {
         setLoading(false);
       }
     }
-    fetchRepos();
+    loadData();
   }, []);
 
   return (
@@ -294,10 +268,12 @@ export default function Projects() {
             Featured <span className="text-gradient">Work</span>
           </h2>
           <p className="section-description" style={{ margin: '0 auto' }}>
-            Fetched live from GitHub — {totalRepos} repositories and counting.
+            {error
+              ? 'Fetched live from GitHub — check back in a moment.'
+              : `Fetched live from GitHub — ${totalRepos} repositories and counting.`}
             <br />
             <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              Hover to focus • Click to explore
+              {error ? 'Rate limit reached temporarily' : 'Hover to focus • Click to explore'}
             </span>
           </p>
         </motion.div>
@@ -317,6 +293,49 @@ export default function Projects() {
                 }}
               />
             ))}
+          </div>
+        ) : error ? (
+          /* ── API Error Fallback ── */
+          <div style={{
+            textAlign: 'center', padding: '40px 20px',
+            background: 'var(--bg-card)', borderRadius: 20,
+            border: '1px solid var(--glass-border)',
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 16 }}>
+              GitHub API rate limit reached. Try again in a few minutes.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setError(false);
+                  setLoading(true);
+                  localStorage.removeItem('gh_portfolio_cache');
+                  fetchGitHubData().then(({ profile, repos: r }) => {
+                    setTotalRepos(profile.public_repos || 0);
+                    setRepos(r);
+                  }).catch(() => setError(true)).finally(() => setLoading(false));
+                }}
+                style={{
+                  padding: '10px 24px', borderRadius: 9999,
+                  background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
+                  color: '#c084fc', fontSize: '0.85rem', fontWeight: 600,
+                }}
+              >Retry</motion.button>
+              <motion.a
+                href={`https://github.com/${GITHUB_USERNAME}?tab=repositories`}
+                target="_blank" rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  padding: '10px 24px', borderRadius: 9999,
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f0f5', fontSize: '0.85rem', fontWeight: 600,
+                }}
+              >View on GitHub →</motion.a>
+            </div>
           </div>
         ) : (
           <div style={{
@@ -358,7 +377,7 @@ export default function Projects() {
               transition: 'box-shadow 0.3s',
             }}
           >
-            Explore all {totalRepos} repos
+            Explore{totalRepos > 0 ? ` all ${totalRepos}` : ''} repos
             <span>→</span>
           </motion.a>
         </motion.div>

@@ -1,18 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
-
-const GITHUB_USERNAME = 'ESTAS-crypto';
-
-function useIsMobile(breakpoint = 640) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [breakpoint]);
-  return isMobile;
-}
+import { useIsMobile } from '../hooks/useIsMobile';
+import { fetchGitHubData } from '../hooks/useGitHub';
+import { SKILLS } from '../constants';
 
 /* ─── Bento Card with spotlight ─── */
 function BentoCard({ children, span = 1, delay = 0, inView, color = '#8b5cf6' }) {
@@ -140,23 +130,14 @@ export default function About() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [ghStats, setGhStats] = useState({ repos: 0, followers: 0 });
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(640);
+  const skills = SKILLS;
 
   useEffect(() => {
-    fetch(`https://api.github.com/users/${GITHUB_USERNAME}`)
-      .then(r => r.json())
-      .then(d => setGhStats({ repos: d.public_repos || 0, followers: d.followers || 0 }))
+    fetchGitHubData()
+      .then(({ profile }) => setGhStats({ repos: profile.public_repos || 0, followers: profile.followers || 0 }))
       .catch(() => {});
   }, []);
-
-  const skills = [
-    { name: 'React', level: 92, color: '#61dafb', icon: '⚛️' },
-    { name: 'JavaScript', level: 95, color: '#f7df1e', icon: '⚡' },
-    { name: 'Python', level: 82, color: '#3572A5', icon: '🐍' },
-    { name: 'Node.js', level: 85, color: '#68a063', icon: '🟢' },
-    { name: 'TypeScript', level: 78, color: '#3178c6', icon: '🔷' },
-    { name: 'Figma', level: 75, color: '#f24e1e', icon: '🎨' },
-  ];
 
   const stats = [
     { value: ghStats.repos, suffix: '', label: 'GitHub Repos', color: '#8b5cf6', icon: '📦' },

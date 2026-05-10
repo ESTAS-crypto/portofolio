@@ -1,47 +1,9 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { EXPERIENCES } from '../constants';
 
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [breakpoint]);
-  return isMobile;
-}
-
-const experiences = [
-  {
-    year: '2024 — Present', role: 'Senior Full-Stack Developer', company: 'Tech Innovators Inc.',
-    description: 'Leading development of AI-powered SaaS products. Building scalable architectures serving 100K+ users with 99.9% uptime.',
-    tech: ['React', 'Node.js', 'AWS', 'Python'],
-    color: '#8b5cf6', icon: '🚀',
-    highlights: ['Led team of 5 engineers', 'Reduced load time by 60%', 'Architected microservices'],
-  },
-  {
-    year: '2023 — 2024', role: 'Frontend Developer', company: 'Digital Agency Co.',
-    description: 'Crafted award-winning web experiences for Fortune 500 clients. Implemented complex animations and micro-interactions.',
-    tech: ['Next.js', 'Framer Motion', 'TypeScript'],
-    color: '#06b6d4', icon: '✨',
-    highlights: ['10+ client projects delivered', 'Awwwards Honorable Mention', '45% engagement increase'],
-  },
-  {
-    year: '2022 — 2023', role: 'UI/UX Designer & Developer', company: 'StartupHub',
-    description: 'Designed and developed user interfaces for 10+ startup products. Bridged design and engineering.',
-    tech: ['Figma', 'React', 'Tailwind CSS'],
-    color: '#ec4899', icon: '🎨',
-    highlights: ['Designed 10+ products', 'Created design system', 'User research & testing'],
-  },
-  {
-    year: '2021 — 2022', role: 'Junior Developer', company: 'WebCraft Studios',
-    description: 'Built responsive websites and web applications. Learned modern frameworks and best practices in agile teams.',
-    tech: ['HTML/CSS', 'JavaScript', 'Vue.js'],
-    color: '#10b981', icon: '🌱',
-    highlights: ['20+ websites built', 'Learned agile workflow', 'First open source PR'],
-  },
-];
+const experiences = EXPERIENCES;
 
 function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile }) {
   const ref = useRef(null);

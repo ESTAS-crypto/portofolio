@@ -1,18 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { HERO_ROLES, PROFILE } from '../constants';
 
-function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [breakpoint]);
-  return isMobile;
-}
+const roles = HERO_ROLES;
 
-const roles = ['Full-Stack Developer', 'UI/UX Designer', 'Creative Coder', 'Problem Solver'];
 
 function FloatingOrb({ color, size, top, left, delay, duration }) {
   return (

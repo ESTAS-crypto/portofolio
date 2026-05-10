@@ -1,24 +1,8 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { TECH_STACK } from '../constants';
 
-const techStack = [
-  { name: 'React', color: '#61dafb' },
-  { name: 'Next.js', color: '#ffffff' },
-  { name: 'TypeScript', color: '#3178c6' },
-  { name: 'JavaScript', color: '#f7df1e' },
-  { name: 'Node.js', color: '#68a063' },
-  { name: 'Python', color: '#3776ab' },
-  { name: 'Tailwind', color: '#38bdf8' },
-  { name: 'PostgreSQL', color: '#336791' },
-  { name: 'MongoDB', color: '#47a248' },
-  { name: 'Docker', color: '#2496ed' },
-  { name: 'AWS', color: '#ff9900' },
-  { name: 'Figma', color: '#f24e1e' },
-  { name: 'GraphQL', color: '#e10098' },
-  { name: 'Redis', color: '#dc382d' },
-  { name: 'Git', color: '#f05032' },
-  { name: 'Firebase', color: '#ffca28' },
-];
+const techStack = TECH_STACK;
 
 function MarqueeRow({ items, direction = 'left', speed = 30 }) {
   const doubled = [...items, ...items];
