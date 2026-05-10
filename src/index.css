@@ -172,7 +172,7 @@ a { cursor: none; }
   .nav-mobile { display: flex !important; }
 }
 
-/* ═══ RESPONSIVE ═══ */
+/* ═══ RESPONSIVE — Tablet ═══ */
 @media (max-width: 768px) {
   .section-title { font-size: clamp(1.6rem, 7vw, 2.5rem); }
   .section-description { font-size: 0.95rem; }
@@ -181,9 +181,16 @@ a { cursor: none; }
   .custom-cursor-dot, .custom-cursor-outline { display: none !important; }
   body { cursor: auto; }
   button, a { cursor: pointer; }
+
+  /* Footer spacing for mobile bottom nav */
+  footer {
+    padding-bottom: 80px !important;
+  }
 }
 
+/* ═══ RESPONSIVE — Small phones ═══ */
 @media (max-width: 480px) {
   .section-title { font-size: clamp(1.4rem, 8vw, 2rem); }
   .section-label { font-size: 0.7rem; padding: 4px 12px; }
+  .section-description { font-size: 0.88rem; line-height: 1.6; }
 }

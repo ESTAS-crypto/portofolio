@@ -3,6 +3,17 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 const GITHUB_USERNAME = 'ESTAS-crypto';
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 const langMeta = {
   JavaScript: { color: '#f7df1e', icon: '⚡' },
   TypeScript: { color: '#3178c6', icon: '🔷' },
@@ -27,7 +38,7 @@ function AnimatedBorder({ active, color }) {
 }
 
 /* ─── Project Card ─── */
-function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards }) {
+function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, isMobile }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
   const meta = langMeta[repo.language] || langMeta.default;
@@ -70,7 +81,7 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards })
       }}>
         {/* Top visual / Preview area */}
         <div style={{
-          position: 'relative', height: 160, overflow: 'hidden',
+          position: 'relative', height: isMobile ? 120 : 160, overflow: 'hidden',
           background: `linear-gradient(135deg, ${meta.color}08 0%, ${meta.color}03 50%, rgba(6,5,11,0.8) 100%)`,
           borderBottom: `1px solid ${isHovered ? meta.color + '22' : 'rgba(255,255,255,0.04)'}`,
           transition: 'border-color 0.4s',
@@ -144,7 +155,7 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards })
             marginBottom: 8,
           }}>
             <h3 style={{
-              fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.1rem',
+              fontFamily: 'Space Grotesk, sans-serif', fontSize: isMobile ? '0.95rem' : '1.1rem',
               fontWeight: 700, color: '#f0f0f5',
             }}>{prettyName}</h3>
             <span style={{
@@ -156,13 +167,14 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards })
           </div>
 
           <p style={{
-            color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.55,
-            marginBottom: 16, minHeight: 36,
+            color: 'var(--text-secondary)', fontSize: isMobile ? '0.78rem' : '0.82rem', lineHeight: 1.55,
+            marginBottom: 16, minHeight: isMobile ? 'auto' : 36,
           }}>{repo.description || 'No description available.'}</p>
 
           {/* Bottom row: stats + actions */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexWrap: isMobile ? 'wrap' : 'nowrap', gap: isMobile ? 8 : 0,
           }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               {repo.stargazers_count > 0 && (
@@ -234,6 +246,8 @@ export default function Projects() {
   const [totalRepos, setTotalRepos] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     async function fetchRepos() {
       try {
@@ -259,7 +273,7 @@ export default function Projects() {
   }, []);
 
   return (
-    <section id="projects" style={{ position: 'relative', padding: '100px 20px' }}>
+    <section id="projects" style={{ position: 'relative', padding: isMobile ? '60px 16px' : '100px 20px' }}>
       {/* Background accent */}
       <div style={{
         position: 'absolute', top: '30%', left: '50%', transform: 'translateX(-50%)',
@@ -307,8 +321,8 @@ export default function Projects() {
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
-            gap: 20,
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))',
+            gap: isMobile ? 16 : 20,
           }}>
             {repos.map((repo, i) => (
               <ProjectCard
@@ -316,6 +330,7 @@ export default function Projects() {
                 hoveredIndex={hoveredIndex}
                 setHoveredIndex={setHoveredIndex}
                 totalCards={repos.length}
+                isMobile={isMobile}
               />
             ))}
           </div>

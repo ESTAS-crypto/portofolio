@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 export default function Footer() {
   return (
     <footer style={{
-      position: 'relative', padding: '40px 24px', textAlign: 'center',
+      position: 'relative', padding: '40px 24px 50px', textAlign: 'center',
       borderTop: '1px solid var(--glass-border)',
     }}>
       {/* Gradient line */}

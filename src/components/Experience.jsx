@@ -1,5 +1,16 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 const experiences = [
   {
@@ -32,7 +43,7 @@ const experiences = [
   },
 ];
 
-function TimelineCard({ exp, index, activeIndex, setActiveIndex }) {
+function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-50px' });
   const isActive = activeIndex === index;
@@ -48,7 +59,7 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex }) {
     >
       {/* ─── Timeline spine ─── */}
       <div style={{
-        position: 'relative', width: 36, flexShrink: 0,
+        position: 'relative', width: isMobile ? 24 : 36, flexShrink: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
         {/* Vertical beam */}
@@ -109,7 +120,7 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex }) {
         />
 
         {/* Main content */}
-        <div style={{ padding: '16px 16px' }}>
+        <div style={{ padding: isMobile ? '12px 12px' : '16px 16px' }}>
           {/* Header row */}
           <div style={{
             display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
@@ -219,9 +230,10 @@ export default function Experience() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const [activeIndex, setActiveIndex] = useState(null);
+  const isMobile = useIsMobile();
 
   return (
-    <section id="experience" style={{ position: 'relative', padding: '100px 20px' }}>
+    <section id="experience" style={{ position: 'relative', padding: isMobile ? '60px 16px' : '100px 20px' }}>
       {/* Background */}
       <div style={{
         position: 'absolute', top: '50%', right: 0, transform: 'translateY(-50%)',
@@ -252,6 +264,7 @@ export default function Experience() {
               key={i} exp={exp} index={i}
               activeIndex={activeIndex}
               setActiveIndex={setActiveIndex}
+              isMobile={isMobile}
             />
           ))}
         </div>

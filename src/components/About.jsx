@@ -166,7 +166,7 @@ export default function About() {
   ];
 
   return (
-    <section id="about" style={{ position: 'relative', padding: '100px 20px', overflow: 'hidden' }}>
+    <section id="about" style={{ position: 'relative', padding: isMobile ? '60px 16px' : '100px 20px', overflow: 'hidden' }}>
       {/* Background lamp */}
       <div style={{
         position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
@@ -180,7 +180,7 @@ export default function About() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          style={{ textAlign: 'center', marginBottom: 40 }}
+          style={{ textAlign: 'center', marginBottom: isMobile ? 24 : 40 }}
         >
           <div className="section-label">✦ About Me</div>
           <h2 className="section-title">
@@ -196,7 +196,7 @@ export default function About() {
         }}>
           {/* Card 1: Bio */}
           <BentoCard span={1} delay={0.1} inView={inView} color="#8b5cf6">
-            <div style={{ padding: '24px 22px' }}>
+            <div style={{ padding: isMobile ? '18px 16px' : '24px 22px' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14,
               }}>
@@ -258,7 +258,7 @@ export default function About() {
 
           {/* Card 2: Stats */}
           <BentoCard span={1} delay={0.2} inView={inView} color="#06b6d4">
-            <div style={{ padding: '24px 22px' }}>
+            <div style={{ padding: isMobile ? '18px 16px' : '24px 22px' }}>
               <div style={{
                 fontSize: '0.7rem', fontFamily: 'JetBrains Mono, monospace',
                 color: 'var(--text-tertiary)', marginBottom: 16,
@@ -296,7 +296,7 @@ export default function About() {
           <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
           <BentoCard span={1} delay={0.3} inView={inView} color="#ec4899">
             {/* Always full width via wrapper div */}
-            <div style={{ padding: '24px 22px' }}>
+            <div style={{ padding: isMobile ? '18px 16px' : '24px 22px' }}>
               <div style={{
                 fontSize: '0.7rem', fontFamily: 'JetBrains Mono, monospace',
                 color: 'var(--text-tertiary)', marginBottom: 20,

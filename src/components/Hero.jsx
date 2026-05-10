@@ -1,5 +1,16 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 const roles = ['Full-Stack Developer', 'UI/UX Designer', 'Creative Coder', 'Problem Solver'];
 
@@ -63,7 +74,7 @@ function MagneticButton({ children, href, primary }) {
       style={{
         x: springX, y: springY,
         display: 'inline-flex', alignItems: 'center', gap: 8,
-        padding: '15px 36px', borderRadius: 9999,
+        padding: '15px 36px', borderRadius: 9999, width: 'auto',
         fontWeight: 600, fontSize: '0.95rem',
         position: 'relative', overflow: 'hidden',
         ...(primary ? {
@@ -96,6 +107,7 @@ export default function Hero() {
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const containerRef = useRef(null);
+  const isMobile = useIsMobile();
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const bgX = useSpring(useTransform(mouseX, [0, 1], [-8, 8]), { stiffness: 50, damping: 20 });
@@ -124,24 +136,24 @@ export default function Hero() {
     mouseY.set((e.clientY - rect.top) / rect.height);
   };
 
-  const sparkles = useMemo(() => Array.from({ length: 25 }, (_, i) => i), []);
+  const sparkles = useMemo(() => Array.from({ length: isMobile ? 10 : 25 }, (_, i) => i), [isMobile]);
 
   const firstName = "Evan";
   const lastName = "Atharasya";
 
   return (
     <section
-      id="home" ref={containerRef} onMouseMove={handleMouseMove}
+      id="home" ref={containerRef} onMouseMove={!isMobile ? handleMouseMove : undefined}
       style={{
         position: 'relative', minHeight: '100vh', display: 'flex',
         alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-        padding: '100px 20px 60px',
+        padding: isMobile ? '80px 16px 40px' : '100px 20px 60px',
       }}
     >
-      <motion.div style={{ position: 'absolute', inset: 0, x: bgX, y: bgY }}>
-        <FloatingOrb color="rgba(139,92,246,0.15)" size="600px" top="5%" left="10%" delay={0} duration={20} />
-        <FloatingOrb color="rgba(6,182,212,0.1)" size="500px" top="60%" left="65%" delay={2} duration={25} />
-        <FloatingOrb color="rgba(236,72,153,0.07)" size="400px" top="40%" left="40%" delay={4} duration={18} />
+      <motion.div style={{ position: 'absolute', inset: 0, x: isMobile ? 0 : bgX, y: isMobile ? 0 : bgY }}>
+        <FloatingOrb color="rgba(139,92,246,0.15)" size={isMobile ? '300px' : '600px'} top="5%" left="10%" delay={0} duration={20} />
+        <FloatingOrb color="rgba(6,182,212,0.1)" size={isMobile ? '250px' : '500px'} top="60%" left="65%" delay={2} duration={25} />
+        <FloatingOrb color="rgba(236,72,153,0.07)" size={isMobile ? '200px' : '400px'} top="40%" left="40%" delay={4} duration={18} />
       </motion.div>
 
       <div style={{
@@ -156,7 +168,7 @@ export default function Hero() {
 
       <div style={{
         position: 'relative', zIndex: 2, textAlign: 'center',
-        maxWidth: 900, width: '100%',
+        maxWidth: 900, width: '100%', padding: isMobile ? '0 4px' : 0,
       }}>
         <motion.div
           initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
@@ -164,9 +176,9 @@ export default function Hero() {
           transition={{ delay: 0.3, duration: 0.8 }}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '8px 20px', borderRadius: 9999,
+            padding: isMobile ? '6px 14px' : '8px 20px', borderRadius: 9999,
             background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
-            marginBottom: 32, fontSize: '0.85rem', color: '#10b981',
+            marginBottom: isMobile ? 20 : 32, fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#10b981',
           }}
         >
           <span style={{
@@ -183,8 +195,8 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
           style={{
-            fontFamily: 'JetBrains Mono, monospace', fontSize: '0.9rem',
-            color: 'var(--text-secondary)', marginBottom: 12, letterSpacing: '0.1em',
+            fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '0.78rem' : '0.9rem',
+            color: 'var(--text-secondary)', marginBottom: isMobile ? 8 : 12, letterSpacing: '0.1em',
           }}
         >
           Hi, I'm <span style={{ color: '#c084fc', fontWeight: 600 }}>Evan Atharasya</span>
@@ -192,8 +204,8 @@ export default function Hero() {
 
         <h1 style={{
           fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800,
-          fontSize: 'clamp(2.2rem, 7vw, 5rem)', lineHeight: 1.05,
-          marginBottom: 20, letterSpacing: '-0.03em',
+          fontSize: isMobile ? 'clamp(1.8rem, 9vw, 2.8rem)' : 'clamp(2.2rem, 7vw, 5rem)', lineHeight: 1.05,
+          marginBottom: isMobile ? 14 : 20, letterSpacing: '-0.03em',
         }}>
           <span style={{ display: 'block', overflow: 'hidden' }}>
             {"Crafting Digital".split('').map((char, i) => (
@@ -233,8 +245,8 @@ export default function Hero() {
           transition={{ delay: 1.5 }}
           style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 'clamp(0.85rem, 2vw, 1.1rem)',
-            color: 'var(--text-secondary)', marginBottom: 36,
+            fontSize: isMobile ? '0.8rem' : 'clamp(0.85rem, 2vw, 1.1rem)',
+            color: 'var(--text-secondary)', marginBottom: isMobile ? 24 : 36,
             height: 28, display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: 4,
           }}
@@ -253,8 +265,10 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.7, duration: 0.8 }}
           style={{
-            display: 'flex', gap: 14, justifyContent: 'center',
-            flexWrap: 'wrap', padding: '0 16px',
+            display: 'flex', gap: isMobile ? 10 : 14, justifyContent: 'center',
+            flexWrap: 'wrap', padding: isMobile ? '0 8px' : '0 16px',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: 'center',
           }}
         >
           <MagneticButton href="#projects" primary>
@@ -266,36 +280,38 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.5 }}
-        style={{
-          position: 'absolute', bottom: 30, left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-        }}
-      >
-        <span style={{
-          fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace',
-          color: 'var(--text-tertiary)', letterSpacing: '0.15em', textTransform: 'uppercase',
-        }}>Scroll</span>
+      {!isMobile && (
         <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.5 }}
           style={{
-            width: 18, height: 28, borderRadius: 9,
-            border: '1.5px solid rgba(255,255,255,0.12)',
-            display: 'flex', justifyContent: 'center', paddingTop: 5,
+            position: 'absolute', bottom: 30, left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
           }}
         >
+          <span style={{
+            fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace',
+            color: 'var(--text-tertiary)', letterSpacing: '0.15em', textTransform: 'uppercase',
+          }}>Scroll</span>
           <motion.div
-            animate={{ y: [0, 7, 0], opacity: [1, 0.2, 1] }}
+            animate={{ y: [0, 6, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ width: 2.5, height: 7, borderRadius: 2, background: '#8b5cf6' }}
-          />
+            style={{
+              width: 18, height: 28, borderRadius: 9,
+              border: '1.5px solid rgba(255,255,255,0.12)',
+              display: 'flex', justifyContent: 'center', paddingTop: 5,
+            }}
+          >
+            <motion.div
+              animate={{ y: [0, 7, 0], opacity: [1, 0.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ width: 2.5, height: 7, borderRadius: 2, background: '#8b5cf6' }}
+            />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </section>
   );
 }

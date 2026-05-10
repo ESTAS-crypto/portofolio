@@ -35,8 +35,8 @@ function MarqueeRow({ items, direction = 'left', speed = 30 }) {
       >
         {doubled.map((item, i) => (
           <div key={`${item.name}-${i}`} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '12px 24px', borderRadius: 9999,
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 18px', borderRadius: 9999,
             background: 'var(--bg-card)', border: '1px solid var(--glass-border)',
             whiteSpace: 'nowrap', flexShrink: 0,
             transition: 'border-color 0.3s, box-shadow 0.3s',
@@ -72,13 +72,13 @@ export default function Skills() {
   const row2 = techStack.slice(8);
 
   return (
-    <section id="skills" style={{ position: 'relative', padding: '120px 0', overflow: 'hidden' }}>
+    <section id="skills" style={{ position: 'relative', padding: '80px 0', overflow: 'hidden' }}>
       <div ref={ref} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          style={{ textAlign: 'center', marginBottom: 60 }}
+          style={{ textAlign: 'center', marginBottom: 40 }}
         >
           <div className="section-label">⬡ Tech Stack</div>
           <h2 className="section-title">
