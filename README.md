@@ -39,16 +39,18 @@
 
 ## 🖼️ Sections
 
-```
-┌─────────────────────────────────────────┐
-│  🏠 Hero         — Animated intro       │
-│  👤 About        — Bio + Bento grid      │
-│  💼 Projects     — Live from GitHub      │
-│  ⚡ Skills       — Tech stack marquee    │
-│  📋 Experience   — Interactive timeline  │
-│  ✉️ Contact      — Form + Social cards   │
-└─────────────────────────────────────────┘
-```
+<div align="center">
+
+| | Section | Description |
+|:---:|:---|:---|
+| 🏠 | **Hero** | Animated intro with typing effect & floating orbs |
+| 👤 | **About** | Bio, skill bars & GitHub stats in a bento grid |
+| 💼 | **Projects** | Live repo cards fetched from GitHub API |
+| ⚡ | **Skills** | Infinite-scroll tech stack marquee |
+| 📋 | **Experience** | Interactive expandable timeline |
+| ✉️ | **Contact** | Message form & social media cards |
+
+</div>
 
 ---
 
