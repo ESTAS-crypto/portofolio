@@ -1,7 +1,9 @@
+'use client';
+
 import { GITHUB_USERNAME } from '../constants';
 
-const CACHE_KEY = 'gh_portfolio_cache';
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const CACHE_KEY = 'gh_portfolio_cache_v2';
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Reads cached GitHub data from localStorage.
@@ -28,9 +30,16 @@ function writeCache(data) {
   }
 }
 
+/** Names to exclude from the project list */
+const EXCLUDED_REPOS = new Set([
+  'portofolio',      // This portfolio itself
+  GITHUB_USERNAME,   // Profile README repo
+  'trash',           // Junk/temp repo
+]);
+
 /**
- * Fetches GitHub profile + repos with localStorage caching.
- * Prevents rate-limiting (60 req/hr) during development.
+ * Fetches GitHub profile + ALL repos with localStorage caching.
+ * Returns repos sorted by most recently pushed, filtered for quality.
  *
  * @returns {{ profile: object, repos: array }}
  */
@@ -39,10 +48,10 @@ export async function fetchGitHubData() {
   const cached = readCache();
   if (cached) return cached;
 
-  // 2. Fetch fresh data
+  // 2. Fetch fresh data — get up to 100 repos (covers all public repos)
   const [profileRes, reposRes] = await Promise.all([
     fetch(`https://api.github.com/users/${GITHUB_USERNAME}`),
-    fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=pushed&per_page=8&direction=desc`),
+    fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=pushed&per_page=100&direction=desc`),
   ]);
 
   if (!profileRes.ok || !reposRes.ok) {
@@ -56,14 +65,27 @@ export async function fetchGitHubData() {
     throw new Error('GitHub API rate limit reached');
   }
 
+  // 3. Filter out excluded repos and empty ones, keep up to 9
   const repos = reposRaw
-    .filter(r => r.name !== 'portofolio' && r.name !== GITHUB_USERNAME && r.size > 0)
-    .slice(0, 6);
+    .filter(r => !EXCLUDED_REPOS.has(r.name) && r.size > 0)
+    .slice(0, 9);
 
   const result = { profile, repos };
 
-  // 3. Cache for next time
+  // 4. Cache for next time
   writeCache(result);
 
   return result;
+}
+
+/**
+ * Force clear the cache — use when user updates repos and wants instant refresh.
+ */
+export function clearGitHubCache() {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem('gh_portfolio_cache'); // also clear old key
+  } catch {
+    // ignore
+  }
 }

@@ -149,3 +149,31 @@ export const LANG_META = {
   Lua: { color: '#000080', icon: '🌙' },
   default: { color: '#8b5cf6', icon: '📦' },
 };
+
+/**
+ * Manual projects for private repos or non-GitHub projects.
+ * These will be merged with GitHub repos and shown in the Featured Work section.
+ * 
+ * Fields:
+ *   name        - Project name (required)
+ *   description - Short description
+ *   language    - Primary language (matches LANG_META keys)
+ *   homepage    - Live URL (only accessible link for private repos)
+ *   html_url    - GitHub repo URL (leave null for private repos)
+ *   isPrivate   - true = show "Private" badge, hide "Code" button
+ *   pushed_at   - Last update date (ISO string) — used for sorting & "updated X ago"
+ *   created_at  - First publish date (ISO string) — shown as "Published X ago"
+ *   size        - Repo size in KB (for display)
+ */
+export const MANUAL_PROJECTS = [
+  {
+    name: 'Luvence.id',
+    description: 'Website parfum premium dengan desain modern dan elegan.',
+    language: 'JavaScript',
+    homepage: 'https://luvence-id.vercel.app/',
+    html_url: null,
+    isPrivate: true,
+    created_at: '2026-03-04T00:00:00Z',   // First published
+    pushed_at: '2026-05-27T00:00:00Z',     // Last updated
+    size: 150000,
+  },];

@@ -22,9 +22,10 @@
   --text-primary: #f0f0f5;
   --text-secondary: #8b8b9e;
   --text-tertiary: #55556a;
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Fonts — powered by next/font CSS variables */
+  --font-primary: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;

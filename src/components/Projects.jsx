@@ -1,9 +1,11 @@
+'use client';
+
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../hooks/useLanguage';
-import { fetchGitHubData } from '../hooks/useGitHub';
-import { GITHUB_USERNAME, LANG_META } from '../constants';
+import { fetchGitHubData, clearGitHubCache } from '../hooks/useGitHub';
+import { GITHUB_USERNAME, LANG_META, MANUAL_PROJECTS } from '../constants';
 
 const langMeta = LANG_META;
 
@@ -19,20 +21,32 @@ function AnimatedBorder({ active, color }) {
   );
 }
 
+/* ─── Human-readable time helper (with i18n) ─── */
+function formatTimeAgo(dateStr, tp) {
+  if (!dateStr) return null;
+  const days = Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+  if (days === 0) return tp.today;
+  if (days === 1) return tp.yesterday;
+  if (days < 30) return `${days}${tp.daysAgo}`;
+  if (days < 365) return `${Math.floor(days / 30)}${tp.monthsAgo}`;
+  return `${Math.floor(days / 365)}${tp.yearsAgo}`;
+}
+
 /* ─── Project Card ─── */
-function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, isMobile }) {
+function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, isMobile, t }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
   const meta = langMeta[repo.language] || langMeta.default;
   const isHovered = hoveredIndex === index;
   const isBlurred = hoveredIndex !== null && hoveredIndex !== index;
+  const tp = t.projects;
 
   const prettyName = repo.name.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-  // Time ago
-  const pushed = new Date(repo.pushed_at);
-  const daysAgo = Math.floor((Date.now() - pushed) / 86400000);
-  const timeAgo = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo}d ago`;
+  // Time labels (translated)
+  const updatedAgo = formatTimeAgo(repo.pushed_at || repo.updated_at, tp);
+  const createdAgo = formatTimeAgo(repo.created_at, tp);
+
 
   return (
     <motion.div
@@ -120,6 +134,17 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, i
             <span style={{ color: meta.color }}>{repo.language || '—'}</span>
           </div>
 
+          {/* Private badge */}
+          {repo.isPrivate && (
+            <div style={{
+              position: 'absolute', top: 12, left: 12,
+              padding: '3px 8px', borderRadius: 6,
+              background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+              fontSize: '0.55rem', fontFamily: 'JetBrains Mono, monospace',
+              color: '#f87171', fontWeight: 700, letterSpacing: '0.05em',
+            }}>🔒 {tp.private}</div>
+          )}
+
           {/* Big emoji */}
           <div style={{
             position: 'absolute', bottom: 12, left: 16,
@@ -138,20 +163,33 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, i
           }}>
             <h3 style={{
               fontFamily: 'Space Grotesk, sans-serif', fontSize: isMobile ? '0.95rem' : '1.1rem',
-              fontWeight: 700, color: '#f0f0f5',
+              fontWeight: 700, color: '#f0f0f5', flex: 1, minWidth: 0,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>{prettyName}</h3>
-            <span style={{
-              fontSize: '0.6rem', fontFamily: 'JetBrains Mono, monospace',
-              color: 'var(--text-tertiary)',
-              padding: '2px 8px', borderRadius: 6,
-              background: 'rgba(255,255,255,0.03)',
-            }}>📌 {timeAgo}</span>
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {updatedAgo && (
+                <span style={{
+                  fontSize: '0.55rem', fontFamily: 'JetBrains Mono, monospace',
+                  color: '#10b981', padding: '2px 6px', borderRadius: 5,
+                  background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+                  whiteSpace: 'nowrap',
+                }}>🔄 {updatedAgo}</span>
+              )}
+              {createdAgo && (
+                <span style={{
+                  fontSize: '0.55rem', fontFamily: 'JetBrains Mono, monospace',
+                  color: 'var(--text-tertiary)', padding: '2px 6px', borderRadius: 5,
+                  background: 'rgba(255,255,255,0.03)',
+                  whiteSpace: 'nowrap',
+                }}>📌 {createdAgo}</span>
+              )}
+            </div>
           </div>
 
           <p style={{
             color: 'var(--text-secondary)', fontSize: isMobile ? '0.78rem' : '0.82rem', lineHeight: 1.55,
             marginBottom: 16, minHeight: isMobile ? 'auto' : 36,
-          }}>{repo.description || 'No description available.'}</p>
+          }}>{repo.description || tp.noDescription}</p>
 
           {/* Bottom row: stats + actions */}
           <div style={{
@@ -193,25 +231,28 @@ function ProjectCard({ repo, index, hoveredIndex, setHoveredIndex, totalCards, i
                     display: 'flex', alignItems: 'center', gap: 4,
                   }}
                 >
-                  <span>◉</span> Live
+                  <span>◉</span> {tp.live}
                 </motion.a>
               )}
-              <motion.a
-                href={repo.html_url}
-                target="_blank" rel="noopener noreferrer"
-                whileHover={{ scale: 1.15, y: -2 }}
-                whileTap={{ scale: 0.9 }}
-                style={{
-                  padding: '6px 14px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  fontSize: '0.7rem', fontWeight: 600, color: '#8b8b9e',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  display: 'flex', alignItems: 'center', gap: 4,
-                }}
-              >
-                <span>↗</span> Code
-              </motion.a>
+              {/* Hide code button for private repos */}
+              {!repo.isPrivate && repo.html_url && (
+                <motion.a
+                  href={repo.html_url}
+                  target="_blank" rel="noopener noreferrer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.9 }}
+                  style={{
+                    padding: '6px 14px', borderRadius: 8,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    fontSize: '0.7rem', fontWeight: 600, color: '#8b8b9e',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}
+                >
+                  <span>↗</span> {tp.code}
+                </motion.a>
+              )}
             </div>
           </div>
         </div>
@@ -235,9 +276,15 @@ export default function Projects() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { profile, repos: filteredRepos } = await fetchGitHubData();
+        const { profile, repos: githubRepos } = await fetchGitHubData();
         setTotalRepos(profile.public_repos || 0);
-        setRepos(filteredRepos);
+
+        // Merge GitHub repos with manual (private) projects
+        const allProjects = [...githubRepos, ...MANUAL_PROJECTS]
+          .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at))
+          .slice(0, 9);
+
+        setRepos(allProjects);
       } catch (err) {
         console.error('Failed to fetch repos:', err);
         setError(true);
@@ -314,10 +361,13 @@ export default function Projects() {
                 onClick={() => {
                   setError(false);
                   setLoading(true);
-                  localStorage.removeItem('gh_portfolio_cache');
+                  clearGitHubCache();
                   fetchGitHubData().then(({ profile, repos: r }) => {
+                    const allProjects = [...r, ...MANUAL_PROJECTS]
+                      .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at))
+                      .slice(0, 9);
                     setTotalRepos(profile.public_repos || 0);
-                    setRepos(r);
+                    setRepos(allProjects);
                   }).catch(() => setError(true)).finally(() => setLoading(false));
                 }}
                 style={{
@@ -347,11 +397,12 @@ export default function Projects() {
           }}>
             {repos.map((repo, i) => (
               <ProjectCard
-                key={repo.id} repo={repo} index={i}
+                key={repo.id || repo.name} repo={repo} index={i}
                 hoveredIndex={hoveredIndex}
                 setHoveredIndex={setHoveredIndex}
                 totalCards={repos.length}
                 isMobile={isMobile}
+                t={t}
               />
             ))}
           </div>

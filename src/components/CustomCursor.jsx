@@ -1,20 +1,36 @@
-import { useEffect } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function CustomCursor() {
+  const [isMobile, setIsMobile] = useState(true); // default hidden (safe for SSR)
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
   const outlineX = useSpring(cursorX, { stiffness: 150, damping: 15 });
   const outlineY = useSpring(cursorY, { stiffness: 150, damping: 15 });
 
   useEffect(() => {
+    // Check if mobile/touch device
+    const check = () => setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    check();
+    window.addEventListener('resize', check);
+
+    // Track mouse position
     const move = (e) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
     };
     window.addEventListener('mousemove', move);
-    return () => window.removeEventListener('mousemove', move);
+
+    return () => {
+      window.removeEventListener('resize', check);
+      window.removeEventListener('mousemove', move);
+    };
   }, [cursorX, cursorY]);
+
+  // Don't render on mobile or during SSR
+  if (isMobile) return null;
 
   return (
     <>

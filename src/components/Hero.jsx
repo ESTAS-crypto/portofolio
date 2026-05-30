@@ -1,38 +1,28 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+'use client';
+
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useLanguage } from '../hooks/useLanguage';
-import { HERO_ROLES, PROFILE } from '../constants';
+import { PROFILE } from '../constants';
 
-const roles = HERO_ROLES;
+/* Load 3D scene only on client — Three.js requires DOM */
+const Scene3D = dynamic(() => import('./Scene3D'), { ssr: false });
 
 
-function FloatingOrb({ color, size, top, left, delay, duration }) {
-  return (
-    <motion.div
-      animate={{
-        x: [0, 30, -20, 15, 0],
-        y: [0, -40, 20, -30, 0],
-        scale: [1, 1.1, 0.95, 1.05, 1],
-      }}
-      transition={{ duration, repeat: Infinity, ease: 'easeInOut', delay }}
-      style={{
-        position: 'absolute', top, left, width: size, height: size,
-        borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none',
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-      }}
-    />
-  );
-}
 
-function Sparkle({ delay }) {
-  const top = useMemo(() => `${Math.random() * 100}%`, []);
-  const left = useMemo(() => `${Math.random() * 100}%`, []);
-  const size = useMemo(() => 2 + Math.random() * 3, []);
+function Sparkle({ index }) {
+  // Deterministic positions based on index — avoids SSR/client mismatch
+  const top = `${((index * 37 + 13) % 100)}%`;
+  const left = `${((index * 53 + 7) % 100)}%`;
+  const size = 2 + (index % 4);
+  const duration = 2 + (index % 3);
+  const delay = index * 0.3;
   return (
     <motion.div
       animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-      transition={{ duration: 2 + Math.random() * 3, repeat: Infinity, delay, ease: 'easeInOut' }}
+      transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
       style={{
         position: 'absolute', top, left, width: size, height: size,
         borderRadius: '50%', background: '#fff',
@@ -102,13 +92,19 @@ export default function Hero() {
   const containerRef = useRef(null);
   const isMobile = useIsMobile();
   const { t } = useLanguage();
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const bgX = useSpring(useTransform(mouseX, [0, 1], [-8, 8]), { stiffness: 50, damping: 20 });
-  const bgY = useSpring(useTransform(mouseY, [0, 1], [-8, 8]), { stiffness: 50, damping: 20 });
+
+  const roles = t.hero.roles;
+
+  useEffect(() => {
+    // Reset typing when language changes
+    setDisplayText('');
+    setIsDeleting(false);
+    setRoleIndex(0);
+  }, [t]);
 
   useEffect(() => {
     const current = roles[roleIndex];
+    if (!current) return;
     let timeout;
     if (!isDeleting && displayText.length < current.length) {
       timeout = setTimeout(() => setDisplayText(current.slice(0, displayText.length + 1)), 80);
@@ -121,35 +117,39 @@ export default function Hero() {
       setRoleIndex((prev) => (prev + 1) % roles.length);
     }
     return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, roleIndex]);
+  }, [displayText, isDeleting, roleIndex, roles]);
 
-  const handleMouseMove = (e) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width);
-    mouseY.set((e.clientY - rect.top) / rect.height);
-  };
-
-  const sparkles = useMemo(() => Array.from({ length: isMobile ? 10 : 25 }, (_, i) => i), [isMobile]);
-
-  const firstName = "Evan";
-  const lastName = "Atharasya";
+  const sparkles = useMemo(() => Array.from({ length: isMobile ? 8 : 18 }, (_, i) => i), [isMobile]);
 
   return (
     <section
-      id="home" ref={containerRef} onMouseMove={!isMobile ? handleMouseMove : undefined}
+      id="home" ref={containerRef}
       style={{
         position: 'relative', minHeight: '100vh', display: 'flex',
         alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
         padding: isMobile ? '80px 16px 40px' : '100px 20px 60px',
       }}
     >
-      <motion.div style={{ position: 'absolute', inset: 0, x: isMobile ? 0 : bgX, y: isMobile ? 0 : bgY }}>
-        <FloatingOrb color="rgba(139,92,246,0.15)" size={isMobile ? '300px' : '600px'} top="5%" left="10%" delay={0} duration={20} />
-        <FloatingOrb color="rgba(6,182,212,0.1)" size={isMobile ? '250px' : '500px'} top="60%" left="65%" delay={2} duration={25} />
-        <FloatingOrb color="rgba(236,72,153,0.07)" size={isMobile ? '200px' : '400px'} top="40%" left="40%" delay={4} duration={18} />
-      </motion.div>
+      {/* ─── 3D Scene Background (desktop) ─── */}
+      {!isMobile && <Scene3D />}
 
+      {/* ─── Lightweight gradient fallback (mobile) ─── */}
+      {isMobile && (
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <div style={{
+            position: 'absolute', top: '5%', left: '10%', width: '300px', height: '300px',
+            borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none',
+            background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
+          }} />
+          <div style={{
+            position: 'absolute', top: '60%', left: '65%', width: '250px', height: '250px',
+            borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%)',
+          }} />
+        </div>
+      )}
+
+      {/* Grid pattern */}
       <div style={{
         position: 'absolute', inset: 0,
         backgroundImage: 'linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px)',
@@ -158,7 +158,7 @@ export default function Hero() {
         WebkitMaskImage: 'radial-gradient(ellipse 50% 50% at 50% 50%, black, transparent)',
       }} />
 
-      {sparkles.map(i => <Sparkle key={i} delay={i * 0.3} />)}
+      {sparkles.map(i => <Sparkle key={i} index={i} />)}
 
       <div style={{
         position: 'relative', zIndex: 2, textAlign: 'center',
@@ -189,15 +189,15 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
           style={{
-            fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '0.78rem' : '0.9rem',
+            fontFamily: 'var(--font-mono)', fontSize: isMobile ? '0.78rem' : '0.9rem',
             color: 'var(--text-secondary)', marginBottom: isMobile ? 8 : 12, letterSpacing: '0.1em',
           }}
         >
-          {t.hero.greeting} <span style={{ color: '#c084fc', fontWeight: 600 }}>{PROFILE.name}</span>
+          {t.hero.greeting} <span style={{ color: '#c084fc', fontWeight: 600 }}>{PROFILE.firstName}</span>
         </motion.p>
 
         <h1 style={{
-          fontFamily: 'Space Grotesk, sans-serif', fontWeight: 800,
+          fontFamily: 'var(--font-display)', fontWeight: 800,
           fontSize: isMobile ? 'clamp(1.6rem, 8vw, 2.5rem)' : 'clamp(2.2rem, 7vw, 5rem)', lineHeight: 1.05,
           marginBottom: isMobile ? 14 : 20, letterSpacing: '-0.03em',
           wordBreak: 'break-word', overflowWrap: 'break-word',
@@ -239,7 +239,7 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
           style={{
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: 'var(--font-mono)',
             fontSize: isMobile ? '0.8rem' : 'clamp(0.85rem, 2vw, 1.1rem)',
             color: 'var(--text-secondary)', marginBottom: isMobile ? 24 : 36,
             height: 28, display: 'flex', alignItems: 'center',
@@ -287,7 +287,7 @@ export default function Hero() {
           }}
         >
           <span style={{
-            fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '0.65rem', fontFamily: 'var(--font-mono)',
             color: 'var(--text-tertiary)', letterSpacing: '0.15em', textTransform: 'uppercase',
           }}>{t.hero.scroll}</span>
           <motion.div

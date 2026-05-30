@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -6,7 +8,7 @@ import { EXPERIENCES } from '../constants';
 
 const experiences = EXPERIENCES;
 
-function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile }) {
+function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile, t }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-50px' });
   const isActive = activeIndex === index;
@@ -148,7 +150,7 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile }) {
                     fontSize: '0.65rem', fontFamily: 'JetBrains Mono, monospace',
                     color: 'var(--text-tertiary)', marginBottom: 8,
                     textTransform: 'uppercase', letterSpacing: '0.1em',
-                  }}>Key Highlights</div>
+                  }}>{ t.experience.keyHighlights}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {exp.highlights.map((h, i) => (
                       <motion.div
@@ -183,7 +185,7 @@ function TimelineCard({ exp, index, activeIndex, setActiveIndex, isMobile }) {
           fontFamily: 'JetBrains Mono, monospace',
           opacity: hovered && !isActive ? 0.6 : 0,
           transition: 'opacity 0.3s',
-        }}>click to expand ↓</div>
+        }}>{t.experience.clickExpand}</div>
       </div>
     </motion.div>
   );
@@ -223,14 +225,27 @@ export default function Experience() {
         </motion.div>
 
         <div>
-          {experiences.map((exp, i) => (
-            <TimelineCard
-              key={i} exp={exp} index={i}
-              activeIndex={activeIndex}
-              setActiveIndex={setActiveIndex}
-              isMobile={isMobile}
-            />
-          ))}
+          {experiences.map((exp, i) => {
+            // Merge static data (tech, color, icon) with translated text
+            const translated = t.experience.items?.[i] || {};
+            const merged = {
+              ...exp,
+              year: translated.year || exp.year,
+              role: translated.role || exp.role,
+              company: translated.company || exp.company,
+              description: translated.description || exp.description,
+              highlights: translated.highlights || exp.highlights,
+            };
+            return (
+              <TimelineCard
+                key={i} exp={merged} index={i}
+                activeIndex={activeIndex}
+                setActiveIndex={setActiveIndex}
+                isMobile={isMobile}
+                t={t}
+              />
+            );
+          })}
         </div>
       </div>
     </section>

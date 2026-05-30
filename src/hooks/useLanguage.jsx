@@ -1,26 +1,41 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+'use client';
+
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations } from '../i18n';
 
 const LanguageContext = createContext();
 
 /**
  * Wrap your app with this provider to enable language switching.
- * Default language is detected from browser, fallback to 'en'.
+ * SSR-safe: defaults to 'en', then restores from localStorage on mount.
  */
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => {
-    // Try to restore from localStorage
-    const saved = localStorage.getItem('portfolio_lang');
-    if (saved && translations[saved]) return saved;
-    // Auto-detect from browser
-    const browserLang = navigator.language?.slice(0, 2);
-    return browserLang === 'id' ? 'id' : 'en';
-  });
+  const [lang, setLang] = useState('en'); // safe default for SSR
+
+  // Restore language preference on mount (client-only)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('portfolio_lang');
+      if (saved && translations[saved]) {
+        setLang(saved);
+        return;
+      }
+      // Auto-detect from browser
+      const browserLang = navigator.language?.slice(0, 2);
+      if (browserLang === 'id') setLang('id');
+    } catch {
+      // SSR or localStorage unavailable — keep default
+    }
+  }, []);
 
   const toggleLang = useCallback(() => {
     setLang(prev => {
       const next = prev === 'en' ? 'id' : 'en';
-      localStorage.setItem('portfolio_lang', next);
+      try {
+        localStorage.setItem('portfolio_lang', next);
+      } catch {
+        // localStorage unavailable
+      }
       return next;
     });
   }, []);
