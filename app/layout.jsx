@@ -120,7 +120,7 @@ export const metadata = {
     shortcut: '/favicon.png',
   },
   other: {
-    'google-site-verification': '', // Fill this after registering in Google Search Console
+    'google-site-verification': 'google906c57050ca11120',
   },
 };
 
