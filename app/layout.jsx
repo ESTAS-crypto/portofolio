@@ -21,61 +21,106 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+/* ─── Site Configuration ─── */
+const SITE_URL = 'https://portofolio-evan-atharasya.vercel.app';
+const SITE_NAME = 'Evan Atharasya';
+const SITE_TITLE = 'Evan Atharasya — Creative Developer & UI/UX Designer';
+const SITE_DESCRIPTION =
+  'Portfolio of Evan Atharasya — Full-Stack Developer & UI/UX Designer. Crafting stunning, modern web experiences with React, Next.js, JavaScript, and more. Available for freelance and collaboration.';
+const SITE_DESCRIPTION_ID =
+  'Portofolio Evan Atharasya — Developer Full-Stack & Desainer UI/UX. Membuat pengalaman web modern yang memukau dengan React, Next.js, JavaScript, dan lainnya. Tersedia untuk freelance dan kolaborasi.';
+
 /* ─── SEO Metadata (rendered server-side for Google) ─── */
 export const metadata = {
-  title: 'Evan Atharasya — Creative Developer',
-  description:
-    'Full-Stack Developer & UI/UX Designer crafting stunning digital experiences. Portfolio showcasing modern web development projects with React, Next.js, and more.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
   keywords: [
+    // English keywords
     'Evan Atharasya',
     'portfolio',
     'developer',
     'full-stack developer',
     'UI/UX designer',
-    'React',
-    'Next.js',
+    'React developer',
+    'Next.js developer',
     'web developer',
     'frontend developer',
     'creative developer',
+    'JavaScript developer',
+    'freelance developer',
+    // Indonesian keywords
+    'portofolio',
+    'developer Indonesia',
+    'developer full-stack',
+    'desainer UI/UX',
+    'pembuat website',
+    'jasa pembuatan website',
+    'web developer Indonesia',
   ],
-  authors: [{ name: 'Evan Atharasya', url: 'https://github.com/ESTAS-crypto' }],
-  creator: 'Evan Atharasya',
+  authors: [{ name: SITE_NAME, url: `${SITE_URL}` }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'technology',
+  alternates: {
+    canonical: SITE_URL,
+    languages: {
+      'en': SITE_URL,
+      'id': SITE_URL,
+    },
+  },
   openGraph: {
-    title: 'Evan Atharasya — Creative Developer',
-    description:
-      'Full-Stack Developer & UI/UX Designer crafting stunning digital experiences.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     type: 'website',
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'en_US',
+    alternateLocale: ['id_ID'],
     images: [
       {
         url: '/preview.png',
         width: 1200,
         height: 630,
-        alt: 'Evan Atharasya Portfolio Preview',
+        alt: `${SITE_NAME} — Creative Developer Portfolio`,
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Evan Atharasya — Creative Developer',
-    description:
-      'Full-Stack Developer & UI/UX Designer crafting stunning digital experiences.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: ['/preview.png'],
+    creator: '@evanatharasya',
   },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
   },
+  verification: {
+    // Add your Google Search Console verification code here after registering:
+    // google: 'your-google-verification-code',
+  },
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
+    shortcut: '/favicon.png',
+  },
+  other: {
+    'google-site-verification': '', // Fill this after registering in Google Search Console
   },
 };
 
@@ -85,9 +130,60 @@ export const viewport = {
   initialScale: 1,
 };
 
+/* ─── JSON-LD Structured Data for Google Rich Results ─── */
+function JsonLd() {
+  const personSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Evan Atharasya',
+    url: SITE_URL,
+    image: `${SITE_URL}/favicon.png`,
+    jobTitle: 'Full-Stack Developer & UI/UX Designer',
+    description: SITE_DESCRIPTION,
+    sameAs: [
+      'https://github.com/ESTAS-crypto',
+      'https://instagram.com/evanatharasya.x',
+      'https://www.linkedin.com/in/evan-atharasya-64b1621b7/',
+    ],
+    knowsAbout: [
+      'React', 'Next.js', 'JavaScript', 'TypeScript', 'Node.js',
+      'Python', 'UI/UX Design', 'Web Development', 'Full-Stack Development',
+    ],
+  };
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    author: {
+      '@type': 'Person',
+      name: 'Evan Atharasya',
+    },
+    inLanguage: ['en', 'id'],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+    </>
+  );
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <JsonLd />
+      </head>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
       >

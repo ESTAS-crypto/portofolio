@@ -4,6 +4,6 @@ export default function robots() {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://evanatharasya.vercel.app/sitemap.xml',
+    sitemap: 'https://portofolio-evan-atharasya.vercel.app/sitemap.xml',
   };
 }
