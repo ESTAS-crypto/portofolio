@@ -5,6 +5,8 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { projects } from "@/data/projects";
 import { useLenis } from "@/hooks/useLenis";
+import { useActiveSkill } from "@/hooks/useOceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 interface WorkProps {
   onOpenProject: (index: number, triggerElement: HTMLElement) => void;
@@ -16,6 +18,10 @@ export default function Work({ onOpenProject, reducedMotion = false }: WorkProps
   const trackRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLElement>(null);
   const { lenis } = useLenis();
+  const [activeSkill] = useActiveSkill();
+
+  const skillKey = activeSkill.toLowerCase();
+  const hasMatches = !!activeSkill && projects.some((p) => p.tags.some((t) => t.toLowerCase() === skillKey));
 
   useGSAP(
     () => {
@@ -122,6 +128,7 @@ export default function Work({ onOpenProject, reducedMotion = false }: WorkProps
 
   const handleCardClick = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
+    audioEngine.sweepCard();
     onOpenProject(index, e.currentTarget as HTMLElement);
   };
 
@@ -133,33 +140,39 @@ export default function Work({ onOpenProject, reducedMotion = false }: WorkProps
           <p>Terus gulir ke bawah, halaman akan bergeser ke samping.</p>
         </div>
 
-        {projects.map((p, i) => (
-          <a
-            key={p.slug}
-            className="card"
-            href={p.url || "#"}
-            onClick={(e) => handleCardClick(e, i)}
-          >
-            <div
-              className="pv"
-              style={{ "--h": p.hue } as React.CSSProperties}
+        {projects.map((p, i) => {
+          const isHit = !!activeSkill && p.tags.some((t) => t.toLowerCase() === skillKey);
+          const isDim = !!activeSkill && hasMatches && !isHit;
+          const cardClass = `card ${isHit ? "hit" : ""} ${isDim ? "dim" : ""}`.trim();
+
+          return (
+            <a
+              key={p.slug}
+              className={cardClass}
+              href={p.url || "#"}
+              onClick={(e) => handleCardClick(e, i)}
             >
-              <i />
-              <i />
-              <i />
-              <b />
-              <b />
-              <b />
-            </div>
-            <h3>{p.title}</h3>
-            <p>{p.description}</p>
-            <div className="tags">
-              {p.tags.map((tag, tIdx) => (
-                <i key={tIdx}>{tag}</i>
-              ))}
-            </div>
-          </a>
-        ))}
+              <div
+                className="pv"
+                style={{ "--h": p.hue } as React.CSSProperties}
+              >
+                <i />
+                <i />
+                <i />
+                <b />
+                <b />
+                <b />
+              </div>
+              <h3>{p.title}</h3>
+              <p>{p.description}</p>
+              <div className="tags">
+                {p.tags.map((tag, tIdx) => (
+                  <i key={tIdx}>{tag}</i>
+                ))}
+              </div>
+            </a>
+          );
+        })}
       </div>
 
       <div className="wbar">

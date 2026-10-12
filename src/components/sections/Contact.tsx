@@ -5,7 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { siteConfig, socialLinks } from "@/data/site";
 import { showToast } from "@/components/layout/Toast";
-import { audioEngine } from "@/lib/audioEngine";
+import TreasureChest from "./TreasureChest";
 
 interface ContactProps {
   reducedMotion?: boolean;
@@ -90,6 +90,7 @@ export default function Contact({ reducedMotion = false }: ContactProps) {
 
   return (
     <section id="contact" ref={contactRef}>
+      <TreasureChest reducedMotion={reducedMotion} />
       <h2 id="ct">
         {titleWords.map((word, i) => (
           <span key={i} className="w">

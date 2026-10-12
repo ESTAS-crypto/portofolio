@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { causticsVertexShader, causticsFragmentShader } from "@/lib/shaders";
+import { oceanStore } from "@/lib/oceanStore";
 
 export default function Caustics({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -71,8 +72,10 @@ export default function Caustics({ reducedMotion = false }: { reducedMotion?: bo
     };
 
     const handleResize = () => {
-      canvas.width = (window.innerWidth * 0.5) | 0;
-      canvas.height = (window.innerHeight * 0.5) | 0;
+      const isLow = oceanStore.getState().isLowSpec;
+      const scale = isLow ? 0.3 : 0.5;
+      canvas.width = (window.innerWidth * scale) | 0;
+      canvas.height = (window.innerHeight * scale) | 0;
       gl.viewport(0, 0, canvas.width, canvas.height);
     };
 
@@ -81,6 +84,7 @@ export default function Caustics({ reducedMotion = false }: { reducedMotion?: bo
     window.addEventListener("resize", handleResize);
 
     const tickerCb = (time: number) => {
+      if (document.hidden || oceanStore.isCalm()) return;
       const bubEl = document.getElementById("bub");
       if (bubEl && Number(gsap.getProperty(bubEl, "opacity")) < 0.02) {
         return;

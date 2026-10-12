@@ -13,7 +13,7 @@ export const siteConfig = {
     "Punya proyek, magang, atau ide kolaborasi? Kirim pesan, saya balas secepatnya.",
   email: "evanatharasya@gmail.com",
   kineticMarqueeText: "Membangun web, bot, dan alat AI — ",
-  footerText: "Dibuat dengan secangkir kopi dan langit yang cerah.",
+  footerText: "Dibuat dengan secangkir kopi dan langit yang cerah. Tekan ? untuk pintasan keyboard.",
 };
 
 export const stats: StatItem[] = [

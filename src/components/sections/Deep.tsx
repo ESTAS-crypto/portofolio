@@ -5,6 +5,8 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { projects } from "@/data/projects";
 import Seaweed from "@/components/fx/Seaweed";
+import { useActiveSkill } from "@/hooks/useOceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 interface DeepProps {
   onOpenProject: (index: number, triggerElement: HTMLElement) => void;
@@ -23,6 +25,10 @@ export default function Deep({ onOpenProject, reducedMotion = false }: DeepProps
   const l0Ref = useRef<HTMLDivElement>(null);
   const l1Ref = useRef<HTMLDivElement>(null);
   const l2Ref = useRef<HTMLDivElement>(null);
+  const [activeSkill] = useActiveSkill();
+
+  const skillKey = activeSkill.toLowerCase();
+  const hasMatches = !!activeSkill && projects.some((p) => p.tags.some((t) => t.toLowerCase() === skillKey));
 
   // Deterministic helper for SSR-safe layout coordinates
   const schoolFish = useMemo<SchoolFishItem[]>(() => {
@@ -240,11 +246,15 @@ export default function Deep({ onOpenProject, reducedMotion = false }: DeepProps
       <div className="lay" id="L1" ref={l1Ref}>
         {projects.map((p, i) => {
           const pos = fishPositions[i];
+          const isHit = !!activeSkill && p.tags.some((t) => t.toLowerCase() === skillKey);
+          const isDim = !!activeSkill && hasMatches && !isHit;
+          const fishClass = `fish ${isHit ? "hit" : ""} ${isDim ? "dim" : ""}`.trim();
+
           return (
             <button
               key={p.slug}
               type="button"
-              className="fish"
+              className={fishClass}
               data-name={p.title}
               aria-label={`Masuk ke cerita proyek ${p.title}`}
               style={{
@@ -253,7 +263,10 @@ export default function Deep({ onOpenProject, reducedMotion = false }: DeepProps
                 width: `${pos.width}px`,
                 color: pos.color,
               }}
-              onClick={(e) => onOpenProject(i, e.currentTarget)}
+              onClick={(e) => {
+                audioEngine.sweepCard();
+                onOpenProject(i, e.currentTarget);
+              }}
             >
               <span className="push">
                 <svg viewBox="0 0 120 60" aria-hidden="true">

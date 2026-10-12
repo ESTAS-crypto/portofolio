@@ -7,6 +7,7 @@ import { siteConfig } from "@/data/site";
 import Clouds from "@/components/fx/Clouds";
 import Birds from "@/components/fx/Birds";
 import Tide from "@/components/fx/Tide";
+import RippleCanvas from "@/components/fx/RippleCanvas";
 
 interface HeroProps {
   isNight: boolean;
@@ -136,6 +137,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
 
       <div className="hint">Gulir untuk menyelam</div>
       <Tide />
+      <RippleCanvas reducedMotion={reducedMotion} />
     </header>
   );
 }

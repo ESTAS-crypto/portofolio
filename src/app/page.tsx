@@ -17,8 +17,12 @@ import SkipLink from "@/components/layout/SkipLink";
 import Nav from "@/components/layout/Nav";
 import Gauge from "@/components/layout/Gauge";
 import AudioControl from "@/components/layout/AudioControl";
+import ScrollToTop from "@/components/layout/ScrollToTop";
 import Toast from "@/components/layout/Toast";
 import Bubbles from "@/components/fx/Bubbles";
+import Buddy from "@/components/fx/Buddy";
+import ReefCanvas from "@/components/fx/ReefCanvas";
+import Creatures from "@/components/fx/Creatures";
 
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
@@ -27,6 +31,7 @@ import Work from "@/components/sections/Work";
 import Deep from "@/components/sections/Deep";
 import Contact from "@/components/sections/Contact";
 import ProjectPortal from "@/components/portal/ProjectPortal";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 function PortfolioApp() {
   const reducedMotion = useReducedMotion();
@@ -123,6 +128,12 @@ function PortfolioApp() {
     setPortalOpen(false);
   }, []);
 
+  // Pintasan keyboard global (C: calm, M: suara, 1-4: lompat bagian, ?: bantuan)
+  useKeyboardShortcuts({
+    onNavigate: handleNavigate,
+    isPortalOpen: portalOpen,
+  });
+
   return (
     <>
       <SvgSymbols />
@@ -132,8 +143,12 @@ function PortfolioApp() {
       <Nav onNavigate={handleNavigate} reducedMotion={reducedMotion} />
       <Gauge onNavigate={handleNavigate} reducedMotion={reducedMotion} />
       <AudioControl reducedMotion={reducedMotion} />
+      <ScrollToTop onNavigate={handleNavigate} reducedMotion={reducedMotion} />
       <Toast />
       <Bubbles reducedMotion={reducedMotion} />
+      <Buddy reducedMotion={reducedMotion} />
+      <ReefCanvas reducedMotion={reducedMotion} />
+      <Creatures reducedMotion={reducedMotion} />
 
       <main>
         <Hero isNight={isNight} reducedMotion={reducedMotion} />

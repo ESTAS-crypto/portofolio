@@ -1,10 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { siteConfig, stats } from "@/data/site";
 import { skills } from "@/data/skills";
+import { projects } from "@/data/projects";
+import { useActiveSkill } from "@/hooks/useOceanStore";
+import { oceanStore } from "@/lib/oceanStore";
 
 interface AboutProps {
   reducedMotion?: boolean;
@@ -14,6 +17,7 @@ export default function About({ reducedMotion = false }: AboutProps) {
   const aboutRef = useRef<HTMLElement>(null);
   const words = siteConfig.statement.trim().split(/\s+/);
   const reversedSkills = [...skills].reverse();
+  const [activeSkill, setActiveSkill] = useActiveSkill();
 
   useGSAP(
     () => {
@@ -59,6 +63,36 @@ export default function About({ reducedMotion = false }: AboutProps) {
     { scope: aboutRef, dependencies: [reducedMotion] }
   );
 
+  const handleSkillClick = useCallback(
+    (skill: string) => {
+      const nextSkill = activeSkill === skill ? "" : skill;
+      setActiveSkill(nextSkill);
+
+      if (nextSkill) {
+        const key = nextSkill.toLowerCase();
+        const count = projects.filter((p) =>
+          p.tags.some((t) => t.toLowerCase() === key)
+        ).length;
+
+        if (count > 0) {
+          oceanStore.showToast(
+            `${count} proyek memakai ${nextSkill}. Lihat di Proyek dan Jelajah.`
+          );
+        } else {
+          oceanStore.showToast(`Belum ada proyek publik dengan ${nextSkill}.`);
+        }
+      }
+    },
+    [activeSkill, setActiveSkill]
+  );
+
+  const handleKeyDown = (e: React.KeyboardEvent, skill: string) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleSkillClick(skill);
+    }
+  };
+
   return (
     <section id="about" ref={aboutRef}>
       <p className="statement" id="st">
@@ -78,16 +112,49 @@ export default function About({ reducedMotion = false }: AboutProps) {
         ))}
       </div>
 
+      <p className="mhint">Klik sebuah teknologi untuk melihat proyek yang memakainya.</p>
+
       <div className="marq" aria-label="Teknologi yang saya pakai">
         <div className="row" id="r1">
-          {skills.concat(skills).map((skill, i) => (
-            <span key={i}>{skill}</span>
-          ))}
+          {skills.concat(skills).map((skill, i) => {
+            const isFirstHalf = i < skills.length;
+            const isSelected = activeSkill.toLowerCase() === skill.toLowerCase();
+            return (
+              <span
+                key={i}
+                className={isSelected ? "on" : ""}
+                role={isFirstHalf ? "button" : undefined}
+                tabIndex={isFirstHalf ? 0 : -1}
+                aria-label={isFirstHalf ? `Lihat proyek yang memakai ${skill}` : undefined}
+                aria-hidden={!isFirstHalf ? "true" : undefined}
+                onClick={isFirstHalf ? () => handleSkillClick(skill) : undefined}
+                onKeyDown={isFirstHalf ? (e) => handleKeyDown(e, skill) : undefined}
+              >
+                {skill}
+              </span>
+            );
+          })}
         </div>
+
         <div className="row r" id="r2">
-          {reversedSkills.concat(reversedSkills).map((skill, i) => (
-            <span key={i}>{skill}</span>
-          ))}
+          {reversedSkills.concat(reversedSkills).map((skill, i) => {
+            const isFirstHalf = i < reversedSkills.length;
+            const isSelected = activeSkill.toLowerCase() === skill.toLowerCase();
+            return (
+              <span
+                key={i}
+                className={isSelected ? "on" : ""}
+                role={isFirstHalf ? "button" : undefined}
+                tabIndex={isFirstHalf ? 0 : -1}
+                aria-label={isFirstHalf ? `Lihat proyek yang memakai ${skill}` : undefined}
+                aria-hidden={!isFirstHalf ? "true" : undefined}
+                onClick={isFirstHalf ? () => handleSkillClick(skill) : undefined}
+                onKeyDown={isFirstHalf ? (e) => handleKeyDown(e, skill) : undefined}
+              >
+                {skill}
+              </span>
+            );
+          })}
         </div>
       </div>
     </section>

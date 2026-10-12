@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { oceanStore } from "@/lib/oceanStore";
 import Caustics from "./Caustics";
 
 interface BubbleItem {
@@ -32,7 +33,12 @@ export default function Bubbles({ reducedMotion = false }: { reducedMotion?: boo
     // Bubble trail under the surface
     let lastTime = 0;
     const handlePointerMove = (e: PointerEvent) => {
-      if (reducedMotion || e.pointerType === "touch" || window.scrollY < window.innerHeight * 1.6) {
+      if (
+        reducedMotion ||
+        e.pointerType === "touch" ||
+        window.scrollY < window.innerHeight * 1.6 ||
+        oceanStore.isCalm()
+      ) {
         return;
       }
       const now = performance.now();
