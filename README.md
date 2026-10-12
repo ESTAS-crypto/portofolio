@@ -1,69 +1,168 @@
-# Evan Atharasya · Portofolio
+<div align="center">
 
-Situs portofolio interaktif modern berkinerja tinggi yang dimigrasikan dari file monolitik vanilla HTML/CSS/JS (`Evan Atharasya · Portofolio (1).html`) menjadi arsitektur modular **Next.js 15 (App Router)**, **React 19**, **TypeScript strict**, dan **Tailwind CSS v4** dengan 100% paritas visual dan perilaku animasi 1:1.
+  # 🌊 Evan Atharasya · Portofolio
+  ### *Deep-Sea Interactive Experience & Creative Web Development*
+
+  <p align="center">
+    Situs portofolio interaktif modern berkinerja tinggi yang menggabungkan <b>Storytelling Visual</b>, <b>Simulasi Fisika Bawah Laut</b>, dan <b>Arsitektur Frontend State-of-the-Art</b>.
+  </p>
+
+  <!-- Badges -->
+  <p align="center">
+    <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js 15" /></a>
+    <a href="https://react.dev/"><img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+    <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" /></a>
+    <a href="https://gsap.com/"><img src="https://img.shields.io/badge/GSAP_3_ScrollTrigger-88CE02?style=for-the-badge&logo=greensock&logoColor=white" alt="GSAP 3" /></a>
+    <a href="https://lenis.darkroom.engineering/"><img src="https://img.shields.io/badge/Lenis_Smooth_Scroll-000000?style=for-the-badge&logo=scroll&logoColor=white" alt="Lenis" /></a>
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/WebGL-Native_Caustics-990000?style=flat-square&logo=webgl&logoColor=white" alt="WebGL" />
+    <img src="https://img.shields.io/badge/Web_Audio_API-Synthesizer-orange?style=flat-square&logo=audio&logoColor=white" alt="Web Audio" />
+    <img src="https://img.shields.io/badge/Playwright-E2E_Smoke_Tested-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright" />
+    <img src="https://img.shields.io/badge/Vercel-Production_Ready-black?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
+    <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" />
+  </p>
+
+  <p align="center">
+    <a href="#-peta-fitur--keunggulan-kreatif"><b>✨ Fitur Unggulan</b></a> •
+    <a href="#-showcase-visual"><b>📸 Visual Showcase</b></a> •
+    <a href="#-arsitektur--koordinasi-sistem"><b>🏗️ Arsitektur</b></a> •
+    <a href="#-kontrol-interaktif--pintasan-keyboard"><b>⌨️ Kontrol</b></a> •
+    <a href="#-panduan-instalasi--menjalankan"><b>🚀 Mulai Cepat</b></a>
+  </p>
+
+</div>
 
 ---
 
-## 🛠️ Tech Stack
+## 📸 Showcase Visual
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server & Client Components)
-- **UI Library**: [React 19](https://react.dev/)
-- **Bahasa**: [TypeScript](https://www.typescriptlang.org/) (Strict mode)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + CSS Design Tokens & Native Keyframes di `globals.css`
-- **Animasi & Scroll**:
-  - [GSAP 3](https://gsap.com/) + ScrollTrigger via `@gsap/react` (`useGSAP`)
-  - [Lenis](https://lenis.darkroom.engineering/) terintegrasi ke GSAP Ticker & ScrollTrigger
-- **Typography**: `next/font/google` ([Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) 500/700/800 & [Figtree](https://fonts.google.com/specimen/Figtree) 400/500/600)
-- **Shaders & Audio**:
-  - WebGL Canvas Caustics Shader native (tanpa three.js, resolusi 0.5x, auto pause saat hidden)
-  - Web Audio API synthesizer (brown noise sea swell, wind bandpass, depth lowpass, UI sound pops & whoosh)
-- **Pengujian**: Playwright Smoke Tests & Browser Subagent QA
-- **Package Manager**: [pnpm](https://pnpm.io/)
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%" align="center">
+        <b>🌌 Hero Sky Dive & Night Mode (+3.200 m)</b><br/><br/>
+        <img src="public/preview.png" alt="Hero Sky Dive & Night Mode" width="100%" style="border-radius: 8px;" />
+      </td>
+      <td width="50%" align="center">
+        <b>🌊 Deep Sea Abyss & Curious Fish (-865 m)</b><br/><br/>
+        <img src="public/deep_preview.png" alt="Deep Sea Abyss" width="100%" style="border-radius: 8px;" />
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <b>📖 Interactive Project Portal & 3D Orbiting Chips</b><br/><br/>
+        <img src="public/portal_preview.png" alt="Project Portal Modal" width="80%" style="border-radius: 8px;" />
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## 🌊 Peta Fitur & Interaksi Utama
+## ✨ Peta Fitur & Keunggulan Kreatif
 
-1. **Hero Sky Dive**:
-   - Section di-pin 160% tinggi viewport dengan scrub timeline GSAP.
-   - 5 awan SVG bergeser horizontal ke arah berlawanan, matahari terbenam membesar, teks copywriting memudar ke atas.
-   - Deteksi **Night Mode** otomatis berdasarkan jam lokal (19:00 - 05:00) secara hydration-safe pada client.
-   - Ombak pasang surut (`.tide`) naik menutup layar transisi ke laut.
-2. **Global Background Depth Tweening**:
-   - Variabel CSS `--c` di-tween sepanjang scroll dokumen dari `rgb(27, 127, 179)` ke `rgb(10, 63, 102)` hingga `rgb(3, 17, 31)`.
-3. **Floating Glass Nav**:
-   - Kapsul kaca dengan efek blur (`backdrop-filter: blur(14px)`).
-   - Fluid highlight pill yang berpindah halus (`back.out(1.6)`) mengikuti menu aktif dan hover pointer.
-   - Logo ikan yang miring dinamis merespons arah kecepatan scroll (`rotation: ±42deg`).
-   - Mobile fullscreen overlay menu dengan transisi circular `clip-path` dari tombol burger.
-4. **Interactive Altitude & Depth Gauge**:
-   - Rail vertikal di sisi kanan menghitung elevasi (+3.200 m di udara &rarr; 0 m permukaan &rarr; -1.000 m zona senja).
-   - Efek riak air saat menembus 0 m, peek tip alert pergantian zona, dan klik rail/titik section untuk melompat.
-5. **Smart Ring Cursor**:
-   - Hanya aktif pada pointer presisi (`pointer: fine`).
-   - Posisi kursor di-lerp halus dengan `gsap.quickTo`.
-   - Menampilkan label kontekstual: "Masuk" (ikan), "Buka" (kartu proyek), "Geser" (laut dalam).
-6. **About Section**:
-   - Teks statement menyala kata demi kata mengikuti scroll scrub.
-   - Counter angka statistik menghitung naik otomatis saat masuk viewport (47 repo, 18 teknologi, 3 proyek utama).
-   - Dua baris marquee keahlian bergerak berlawanan arah.
-7. **Kinetic Marquee**:
-   - Teks outline raksasa bergerak horizontal dengan kecepatan dan arah yang mengikuti kecepatan scroll pengguna.
-8. **Horizontal Work Track**:
-   - Pin vertikal yang menggeser track horizontal kartu proyek pilihan.
-   - Rotasi dan scale masuk kartu via `containerAnimation`, 3D tilt pada hover mouse, dan kemiringan `skewX` dinamis sesuai kecepatan Lenis.
-9. **Deep Sea Parallax & Curious Fish**:
-   - 3 lapisan paralaks dunia bawah laut yang dapat digeser via mouse X maupun touch drag (`touch-action: pan-y`).
-   - Ikan penasaran mendekati kursor saat kursor berjarak < 300px.
-   - Rumput laut bergoyang SVG prosedural, sinar matahari bawah air, dan riak air saat klik.
-10. **Project Portal (Case Study Modal)**:
-    - Buka modal dengan transisi zoom lingkaran dari titik klik + zoom in ke mata ikan pemicu.
-    - Konten studi kasus terstruktur: **Masalah**, **Solusi**, **Manfaat**, teknologi, dan tombol aksi (GitHub / demo privat via mailto).
-    - Window mockup 3D dengan chip teknologi yang mengorbit.
-    - Navigasi antar proyek via tombol atau panah keyboard (`ArrowRight` / `ArrowLeft`), dan tutup via `Escape`.
-11. **Responsive & Aksesibilitas**:
-    - Dukungan penuh `prefers-reduced-motion` (menonaktifkan animasi berlebih, layout stack vertikal di Work).
-    - Skip-to-content link, focus visible outline `var(--sun)`, modal dialog `aria-modal="true"` dengan focus trapping & restoration.
+### 1. 🌌 Sky-to-Abyss Elevation Engine
+- **Perjalanan Vertikal Terkoordinasi**: Pengunjung memulai perjalanan dari angkasa (+3.200 m), terjun menembus awan dan ombak laut (0 m), hingga mencapai palung laut terdalam (-1.000 m Zona Senja).
+- **Dynamic Background Depth Tweening**: Variabel CSS `--c` dihitung dan diinterpolasi halus sepanjang dokumen dari warna biru muda udara `rgb(27, 127, 179)` hingga biru pekat abisal `rgb(3, 17, 31)`.
+- **Altitude & Depth Gauge Rail**: Indikator instrumen vertikal di sisi kanan layar dengan kalkulasi posisi presisi, riak air saat menembus permukaan, dan penanda checkpoint yang dapat diklik untuk *fast travel*.
+
+### 2. 🎵 Procedural Web Audio Synthesizer (Zero External Audio Files)
+- **100% Native Web Audio API**: Seluruh efek suara dihasilkan secara matematis tanpa mengunduh file `.mp3` eksternal (menghemat bandwidth dan latensi 0ms).
+- **Dynamic Ambience**: Suara desir angin di angkasa, deburan ombak *brown noise* saat menyelam, dan filter *lowpass* yang otomatis meredam frekuensi semakin dalam pengguna menyelam.
+- **Micro-Sound FX**: Sintesis audio prosedural untuk gelembung air saat klik, kibasan ekor ikan (*whoosh*), dentang peti harta karun, dan interaksi tombol.
+
+### 3. ✨ Native WebGL Caustics Shader
+- **Rendering Refraksi Cahaya Air Prosedural**: Shader GLSL native kustom tanpa dependensi berat Three.js.
+- **Performa Tinggi & Hemat Baterai**: Berjalan pada resolusi 0.5x dengan hardware acceleration dan otomatis berhenti (*auto-pause*) saat tab browser tidak aktif atau di luar jangkauan viewport.
+
+### 4. 🐟 Ekosistem Laut Hidup & Curious Fish AI
+- **Ikan Penasaran (Interactive Curiosity)**: Kawanan ikan di laut dalam akan berenang mendekat saat kursor diarahkan ke dekatnya (< 300px), dan bergerak menjauh dengan kibasan ekor dinamis saat diklik.
+- **Karakter Buddy Diver**: Karakter penyelam animasi dengan senter navigasi yang sudut kepalanya mengikuti kursor secara kontinu tanpa osilasi patah.
+- **Simulasi Ubur-Ubur & Rumput Laut Prosedural**: Rumput laut bergoyang dinamis dengan SVG pathing dan ubur-ubur bercahaya yang dapat ditarik (*draggable*).
+
+### 5. 📖 Project Portal (Studi Kasus Lingkaran Interaktif)
+- **Circular Zoom Transition**: Membuka modal studi kasus dengan efek lingkaran membesar (*clip-path circle reveal*) langsung dari koordinat mata ikan atau kartu yang diklik.
+- **3D Window Mockup & Orbiting Chips**: Jendela mockup proyek 3D dengan tag teknologi yang mengorbit secara tiga dimensi dan bereaksi terhadap pergerakan mouse.
+- **Struktur Studi Kasus Mendalam**: Setiap proyek dilengkapi analisis masalah, solusi arsitektur, dan dampak bisnis (*business value*).
+
+### 6. 🌙 Sistem Waktu Otomatis (Day & Night Mode)
+- **Real-time Environment Engine**: Mendeteksi waktu lokal perangkat pengguna secara otomatis. Saat memasuki pukul **19:00 - 05:00**, langit Hero otomatis berganti menjadi malam berbintang dengan bulan bersinar lembut dan skema gradien malam.
+- Dilengkapi timer interval sinkronisasi aktif setiap 10 detik.
+
+### 7. ♿ Aksesibilitas & Mode Ramah Sensorik
+- **Calm Mode (Mode Tenang)**: Tombol sekali klik untuk menonaktifkan seluruh animasi makhluk laut, gelembung, dan distorsi jika pengguna menginginkan pengalaman membaca minimalis.
+- **Prefers-Reduced-Motion Support**: Menghormati pengaturan aksesibilitas sistem operasi secara komprehensif.
+
+---
+
+## 🏗️ Arsitektur & Koordinasi Sistem
+
+```mermaid
+flowchart TD
+    subgraph UI_Layer ["🖥️ Presentation Layer (React 19 & Next.js 15)"]
+        Hero["🌅 Hero Sky Dive (+3200m)"]
+        About["💡 About & Kinetic Marquee"]
+        Work["💼 Work Track (Horizontal Pin)"]
+        Deep["🐙 Deep Sea Abyss (-1000m)"]
+        Contact["📦 Treasure Chest Contact"]
+    end
+
+    subgraph Core_Engines ["⚙️ Core Animation & Sensory Engines"]
+        Lenis["🔄 Lenis Smooth Scroll Engine"]
+        GSAP["⚡ GSAP Timeline & ScrollTrigger"]
+        Audio["🎵 Web Audio API Synthesizer"]
+        WebGL["✨ Native WebGL Caustics Shaders"]
+    end
+
+    subgraph State_Store ["🧠 Global Ocean Store"]
+        Depth["📏 Depth & Elevation Store"]
+        AudioState["🔊 Mute / Unmute State"]
+        CalmState["🌿 Calm Mode State"]
+        NightState["🌙 Night Mode (19:00 - 05:00)"]
+    end
+
+    Lenis -->|RAF Synchronization| GSAP
+    GSAP -->|Scrub & Depth Factor| UI_Layer
+    GSAP -->|Lowpass Filter Modulation| Audio
+    State_Store -->|CSS Variables & Props| UI_Layer
+    UI_Layer -->|Pointer & Click Events| Audio
+    UI_Layer -->|Canvas Binding| WebGL
+```
+
+---
+
+## ⌨️ Kontrol Interaktif & Pintasan Keyboard
+
+Situs ini dirancang untuk mendukung eksplorasi interaktif baik melalui kursor mouse, layar sentuh, maupun papan ketik:
+
+| Tombol / Aksi | Fungsi | Bagian |
+| :--- | :--- | :--- |
+| <kbd>?</kbd> | Membuka panduan bantuan & pintasan keyboard | Global |
+| <kbd>C</kbd> | Mengaktifkan / menonaktifkan **Calm Mode** (Mode Tenang) | Global |
+| <kbd>M</kbd> | Membisukan / mengaktifkan suara audio laut (**Mute**) | Global |
+| <kbd>Esc</kbd> | Menutup modal studi kasus (*Project Portal*) atau menu mobile | Global |
+| <kbd>→</kbd> / <kbd>←</kbd> | Berpindah ke proyek berikutnya / sebelumnya | Project Portal |
+| **Klik Air di Laut Dalam** | Memberi makan ikan & memicu riak gelombang air | Laut Dalam (`#deep`) |
+| **Sentuh / Geser Ubur-Ubur** | Menarik dan memantulkan ubur-ubur laut | Laut Dalam (`#deep`) |
+| **Klik Peti Emas** | Membuka peti harta karun dengan letupan koin emas | Kontak (`#contact`) |
+
+---
+
+## 🛠️ Tech Stack & Library
+
+| Kategori | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Framework** | [Next.js 15](https://nextjs.org/) | App Router, Server & Client Components, React 19 architecture |
+| **Bahasa** | [TypeScript](https://www.typescriptlang.org/) | Strict mode, zero `any` pada data dan konfigurasi inti |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Native CSS design tokens, modern responsive utilities |
+| **Animasi** | [GSAP 3](https://gsap.com/) & ScrollTrigger | Scrub timeline, container animations, stagger, lerp quickTo |
+| **Smooth Scroll**| [Lenis](https://lenis.darkroom.engineering/) | Momentum-based physics scroll yang di-sync dengan GSAP ticker |
+| **Typography** | `next/font/google` | [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) & [Figtree](https://fonts.google.com/specimen/Figtree) |
+| **Graphics** | Native WebGL | Fragment & vertex shader refraction tanpa Three.js overhead |
+| **Audio** | Web Audio API | Native procedural sound wave synthesizer & filter nodes |
+| **Testing** | [Playwright](https://playwright.dev/) | End-to-end smoke testing di desktop & mobile viewports |
 
 ---
 
@@ -71,91 +170,122 @@ Situs portofolio interaktif modern berkinerja tinggi yang dimigrasikan dari file
 
 ```plaintext
 ├── docs/
-│   ├── INVENTORY.md             # Analisis mendalam & inventarisasi kode awal
-│   └── PORTING_NOTES.md         # Catatan pemetaan arsitektur modular
-├── public/                      # Static assets
+│   ├── INVENTORY.md               # Analisis komprehensif kode sumber awal
+│   └── PORTING_NOTES.md           # Log detail migrasi arsitektur modular Next.js
+├── public/
+│   ├── preview.png                # Tangkapan layar preview Hero
+│   ├── deep_preview.png           # Tangkapan layar preview Deep Sea
+│   └── portal_preview.png         # Tangkapan layar preview Project Portal
 ├── src/
 │   ├── app/
-│   │   ├── globals.css          # Design token, keyframes, utilities
-│   │   ├── layout.tsx           # Root layout, Google fonts, metadata
-│   │   ├── page.tsx             # Main page container & section coordinator
-│   │   ├── opengraph-image.tsx  # Dynamic OG image generation
-│   │   ├── robots.ts            # Robots configuration
-│   │   └── sitemap.ts           # Sitemap generator
+│   │   ├── globals.css            # Token desain, keyframes, dan styling komponen
+│   │   ├── layout.tsx             # Root layout, Google fonts, dynamic metadata
+│   │   ├── page.tsx               # Orchestrator halaman utama & state koordinasi
+│   │   ├── opengraph-image.tsx    # Dynamic OpenGraph card generation
+│   │   ├── robots.ts              # Konfigurasi perayap SEO
+│   │   └── sitemap.ts             # Sitemap XML otomatis
 │   ├── components/
-│   │   ├── fx/                  # Caustics, Bubbles, Clouds, Birds, Tide, Seaweed
-│   │   ├── layout/              # Nav, MobileMenu, Gauge, Cursor, AudioControl, Toast, SkipLink
-│   │   ├── portal/              # ProjectPortal, OrbitMock
-│   │   └── sections/            # Hero, About, KineticMarquee, Work, Deep, Contact
+│   │   ├── fx/                    # Shaders, Caustics, Bubbles, Clouds, Birds, Tide, Buddy
+│   │   ├── layout/                # Nav, MobileMenu, Gauge, Cursor, AudioControl, Toast
+│   │   ├── portal/                # ProjectPortal, OrbitMock 3D window
+│   │   └── sections/              # Hero, About, KineticMarquee, Work, Deep, Contact, TreasureChest
 │   ├── data/
-│   │   ├── projects.ts          # Data terpisah proyek & studi kasus
-│   │   ├── site.ts              # Data profil, links, deskripsi, zona
-│   │   └── skills.ts            # Data daftar skill marquee
-│   ├── hooks/                   # useLenis, useReducedMotion, useNightMode
+│   │   ├── projects.ts            # Typed database proyek & narasi studi kasus
+│   │   ├── site.ts                # Konfigurasi identitas situs, statistik, sosial media
+│   │   └── skills.ts              # Data keahlian teknis marquee
+│   ├── hooks/                     # useLenis, useReducedMotion, useNightMode
 │   ├── lib/
-│   │   ├── audioEngine.ts       # Native Web Audio synthesizer
-│   │   ├── gsap.ts              # Central GSAP & ScrollTrigger registry
-│   │   ├── math.ts              # Interpolasi, clamp, format angka
-│   │   └── shaders.ts           # WebGL caustics shaders
+│   │   ├── audioEngine.ts         # Native Web Audio synthesizer engine
+│   │   ├── gsap.ts                # Registrasi GSAP & ScrollTrigger terpusat
+│   │   ├── math.ts                # Fungsi pembantu interpolasi matematis & clamping
+│   │   ├── oceanStore.ts          # State store reaktif untuk koordinasi audio, depth, dan toast
+│   │   └── shaders.ts             # GLSL shader program untuk WebGL caustics
 │   └── types/
-│       └── project.ts           # TypeScript interfaces & types
+│       └── project.ts             # Definisi interface TypeScript proyek & tema
 ├── tests/
-│   └── smoke.spec.ts            # Playwright smoke tests
+│   └── smoke.spec.ts              # 7 skenario uji otomatis Playwright
 ├── package.json
 └── tsconfig.json
 ```
 
 ---
 
-## 🚀 Menjalankan Secara Lokal
+## 🚀 Panduan Instalasi & Menjalankan
 
 ### Prasyarat
-- Node.js >= 18 (diuji pada v24)
-- pnpm >= 9 (diuji pada v12)
+- **Node.js** >= 18 (direkomendasikan v20 ke atas)
+- **pnpm** >= 9 (atau `npm` / `yarn` / `bun`)
 
-### 1. Instalasi Dependensi
+### 1. Clone Repositori
 ```bash
-pnpm install
+git clone https://github.com/ESTAS-crypto/portofolio.git
+cd portofolio
 ```
 
-### 2. Jalankan Server Development
+### 2. Instal Dependensi
+Pilih package manager favorit Anda:
+
+```bash
+# Menggunakan pnpm (disarankan)
+pnpm install
+
+# Atau menggunakan npm
+npm install
+
+# Atau menggunakan yarn
+yarn install
+
+# Atau menggunakan bun
+bun install
+```
+
+### 3. Jalankan Server Pengembangan
 ```bash
 pnpm run dev
+# atau npm run dev
 ```
-Buka browser di `http://localhost:3000`.
+Buka peramban Anda di `http://localhost:3000`.
 
-### 3. Build & Jalankan Mode Produksi
+### 4. Build untuk Lingkungan Produksi
 ```bash
 pnpm run build
 pnpm run start
+# atau npm run build && npm run start
 ```
 
-### 4. Menjalankan Smoke Test
+### 5. Jalankan Pengujian Otomatis (E2E Tests)
+Proyek ini dilengkapi rangkaian pengujian Playwright komprehensif yang mencakup seluruh alur navigasi, modal, audio, dan mode tenang:
 ```bash
 pnpm run test:smoke
+# atau npx playwright test
 ```
 
 ---
 
-## ☁️ Deploy ke Vercel
+## ☁️ Panduan Deploy ke Vercel
 
-Proyek ini telah dikonfigurasi penuh dan siap dideploy langsung ke [Vercel](https://vercel.com/):
+Situs ini siap dideploy dengan integrasi CI/CD otomatis ke [Vercel](https://vercel.com/):
 
-### Metode 1: Melalui Vercel CLI
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FESTAS-crypto%2Fportofolio)
+
+### Opsi CLI:
 ```bash
 pnpm dlx vercel
 ```
 
-### Metode 2: Melalui Dashboard Vercel (Git Integration)
-1. Push branch `main` ke repository GitHub `https://github.com/ESTAS-crypto/portofolio.git`.
-2. Buka dashboard Vercel & pilih **Import Project**.
-3. Pilih repository `portofolio`.
-4. Framework preset akan terdeteksi otomatis sebagai **Next.js**.
-5. Klik **Deploy**.
+---
+
+## 👤 Pembuat & Kontak
+
+**Evan Atharasya**  
+*Creative Developer & Full-Stack Engineer*
+
+- 🌐 **GitHub**: [@ESTAS-crypto](https://github.com/ESTAS-crypto)
+- 💼 **LinkedIn**: [Evan Atharasya](https://linkedin.com)
+- 📧 **Email**: [evanatharasya@gmail.com](mailto:evanatharasya@gmail.com)
 
 ---
 
-## 📝 Lisensi & Kredit
-
-Dibuat dengan dedikasi penuh oleh **Evan Atharasya** ([@ESTAS-crypto](https://github.com/ESTAS-crypto)).
-Dibuat dengan secangkir kopi dan langit yang cerah.
+<div align="center">
+  <sub>Dibuat dengan dedikasi penuh, secangkir kopi, dan deburan ombak laut yang tenang. 🌊</sub>
+</div>
