@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("Fast scroll to surface immediately hides diver and fish food", async ({ page }) => {
-  await page.goto("http://localhost:3000");
+  await page.goto("/");
   await page.waitForTimeout(1000);
 
   // 1. Scroll down into Deep Sea (#deep)

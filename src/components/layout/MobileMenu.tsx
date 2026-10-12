@@ -23,9 +23,16 @@ export default function MobileMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const { stop, start } = useLenis();
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     const el = menuRef.current;
     if (!el) return;
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (!isOpen) return;
+    }
 
     const D = reducedMotion ? 0.01 : 1;
     const origin = burgerRect
@@ -34,6 +41,7 @@ export default function MobileMenu({
 
     if (isOpen) {
       el.hidden = false;
+      el.style.pointerEvents = "auto";
       stop();
 
       gsap.fromTo(
@@ -50,12 +58,14 @@ export default function MobileMenu({
       );
     } else {
       start();
+      el.style.pointerEvents = "none";
       gsap.to(el, {
         clipPath: `circle(0px at ${origin})`,
         duration: 0.5 * D,
         ease: "power3.in",
         onComplete: () => {
           el.hidden = true;
+          el.style.pointerEvents = "";
         },
       });
     }
@@ -73,8 +83,11 @@ export default function MobileMenu({
 
   const handleLinkClick = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
+    start();
     onClose();
-    onNavigate(id);
+    requestAnimationFrame(() => {
+      onNavigate(id);
+    });
   };
 
   return (

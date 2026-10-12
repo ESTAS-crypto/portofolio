@@ -48,6 +48,24 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
     [reducedMotion]
   );
 
+  const hasAnimatedRef = useRef(false);
+
+  // Mount-only intro entrance animation
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || reducedMotion || hasAnimatedRef.current) return;
+    hasAnimatedRef.current = true;
+
+    gsap.from(nav, {
+      y: -90,
+      opacity: 0,
+      duration: 1.1,
+      ease: "expo.out",
+      delay: 0.3,
+      clearProps: "transform,opacity",
+    });
+  }, [reducedMotion]);
+
   // Position pill on active item
   const updatePillToActive = useCallback(() => {
     if (isHoveredRef.current || !linksWrapRef.current) return;
@@ -61,14 +79,11 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
     updatePillToActive();
   }, [activeId, updatePillToActive]);
 
+  // Scroll and resize listener for progress, active section, and fish logo
   useEffect(() => {
     const nav = navRef.current;
     const fish = fishLogoRef.current;
     if (!nav) return;
-
-    if (!reducedMotion) {
-      gsap.from(nav, { y: -90, opacity: 0, duration: 1.1, ease: "expo.out", delay: 0.3 });
-    }
 
     const sections = ["hero", "about", "work", "deep", "contact"];
 
@@ -89,7 +104,7 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
           currentSection = id;
         }
       });
-      setActiveId(currentSection);
+      setActiveId((prev) => (prev !== currentSection ? currentSection : prev));
 
       // Fish logo tilt
       const dy = y - lastScrollY.current;
@@ -104,20 +119,23 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       updatePillToActive();
-      if (window.innerWidth > 760 && isMenuOpen) {
+      if (window.innerWidth > 760) {
         setIsMenuOpen(false);
       }
-    });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize);
 
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [reducedMotion, isMenuOpen, updatePillToActive]);
+  }, [reducedMotion, updatePillToActive]);
 
   const burstBubbles = (e: React.MouseEvent) => {
     if (reducedMotion) return;
@@ -142,6 +160,9 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
   const handleLinkClick = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     burstBubbles(e);
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
     onNavigate(id);
   };
 

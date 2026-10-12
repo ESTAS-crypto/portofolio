@@ -100,13 +100,29 @@ function PortfolioApp() {
       const targetEl = document.getElementById(id);
       if (!targetEl) return;
 
-      // Account for GSAP pin-spacer if applicable
-      const parent =
-        targetEl.parentElement && targetEl.parentElement.classList.contains("pin-spacer")
-          ? targetEl.parentElement
-          : targetEl;
+      // Account for GSAP ScrollTrigger pin start ONLY for work section, otherwise use element top
+      let targetY = 0;
+      if (id === "work") {
+        const st = ScrollTrigger.getAll().find(
+          (s) => s.trigger === targetEl || s.trigger === targetEl.firstElementChild
+        );
+        if (st && typeof st.start === "number") {
+          targetY = st.start;
+        } else {
+          const parent =
+            targetEl.parentElement && targetEl.parentElement.classList.contains("pin-spacer")
+              ? targetEl.parentElement
+              : targetEl;
+          targetY = parent.getBoundingClientRect().top + window.scrollY;
+        }
+      } else {
+        const parent =
+          targetEl.parentElement && targetEl.parentElement.classList.contains("pin-spacer")
+            ? targetEl.parentElement
+            : targetEl;
+        targetY = parent.getBoundingClientRect().top + window.scrollY;
+      }
 
-      const targetY = parent.getBoundingClientRect().top + window.scrollY;
       const distance = Math.abs(targetY - window.scrollY);
       const duration = Math.min(2.8, Math.max(1.2, distance / 2800));
 

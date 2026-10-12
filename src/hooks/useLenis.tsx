@@ -35,6 +35,7 @@ export function LenisProvider({
 
     const lenis = new Lenis({
       lerp: 0.085,
+      autoToggle: false,
     });
     lenisRef.current = lenis;
     setLenisInstance(lenis);
@@ -53,15 +54,20 @@ export function LenisProvider({
       gsap.ticker.remove(tickerCb);
       lenis.destroy();
       lenisRef.current = null;
+      document.documentElement.style.removeProperty("overflow");
+      document.body.style.removeProperty("overflow");
     };
   }, [reducedMotion]);
 
   const scrollTo = (
     target: number | string | HTMLElement,
-    options?: { duration?: number; easing?: (t: number) => number }
+    options?: { duration?: number; easing?: (t: number) => number; force?: boolean }
   ) => {
+    document.documentElement.style.removeProperty("overflow");
+    document.body.style.removeProperty("overflow");
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(target, options);
+      lenisRef.current.start();
+      lenisRef.current.scrollTo(target, { ...options, force: true });
     } else {
       if (typeof target === "number") {
         window.scrollTo({ top: target, behavior: "smooth" });
@@ -76,10 +82,14 @@ export function LenisProvider({
 
   const stop = () => {
     lenisRef.current?.stop();
+    document.documentElement.style.removeProperty("overflow");
+    document.body.style.removeProperty("overflow");
   };
 
   const start = () => {
     lenisRef.current?.start();
+    document.documentElement.style.removeProperty("overflow");
+    document.body.style.removeProperty("overflow");
   };
 
   return (
