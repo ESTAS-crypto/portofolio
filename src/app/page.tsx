@@ -7,6 +7,8 @@ import { LenisProvider, useLenis } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useNightMode } from "@/hooks/useNightMode";
 import { siteConfig } from "@/data/site";
+import { oceanStore } from "@/lib/oceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 import SvgSymbols from "@/components/layout/SvgSymbols";
 import ScrollProgress from "@/components/layout/ScrollProgress";
@@ -34,6 +36,26 @@ function PortfolioApp() {
   const [portalOpen, setPortalOpen] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [portalTriggerElement, setPortalTriggerElement] = useState<HTMLElement | null>(null);
+
+  // Single Ocean Loop: menghitung kedalaman SEKALI per frame dan membagikannya ke semua modul
+  useEffect(() => {
+    let heroEl: HTMLElement | null = null;
+
+    const onTick = () => {
+      if (!heroEl) heroEl = document.getElementById("hero");
+      const H = window.innerHeight;
+      const heroH = heroEl ? heroEl.offsetHeight : H;
+      const docH = document.documentElement.scrollHeight;
+      const sy = window.scrollY;
+      const v = oceanStore.updateDepth(sy, heroH, docH, H);
+      audioEngine.onFrame(v);
+    };
+
+    gsap.ticker.add(onTick);
+    return () => {
+      gsap.ticker.remove(onTick);
+    };
+  }, []);
 
   // Global background color tween across scroll depth
   useGSAP(

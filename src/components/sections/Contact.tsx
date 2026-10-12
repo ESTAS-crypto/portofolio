@@ -83,7 +83,6 @@ export default function Contact({ reducedMotion = false }: ContactProps) {
     try {
       await navigator.clipboard.writeText(siteConfig.email);
       showToast("Email disalin");
-      audioEngine.pop(700);
     } catch {
       showToast(`Salin manual: ${siteConfig.email}`);
     }

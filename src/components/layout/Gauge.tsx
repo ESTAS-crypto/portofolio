@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { gaugeSections, depthZones } from "@/data/site";
 import { formatNumberId } from "@/lib/math";
+import { oceanStore } from "@/lib/oceanStore";
 
 interface GaugeProps {
   onNavigate: (id: string) => void;
@@ -94,8 +95,8 @@ export default function Gauge({ onNavigate, reducedMotion = false }: GaugeProps)
       const y = window.scrollY;
       const p = Math.min(1, Math.max(0, y / mx));
 
-      // Calculate altitude (+3200 to 0) or depth (0 to -1000)
-      const v = y < he ? Math.round(3200 * (1 - y / he)) : -Math.round(((y - he) / Math.max(1, mx - he)) * 1000);
+      // Ambil nilai kedalaman terpusat dari OceanStore
+      const v = Math.round(oceanStore.getDepth());
 
       disp += (v - disp) * (reducedMotion ? 1 : 0.14);
       if (Math.abs(v - disp) < 0.6) disp = v;

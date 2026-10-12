@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
+import { oceanStore } from "@/lib/oceanStore";
 
 export function showToast(message: string) {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("app:toast", { detail: message }));
-  }
+  oceanStore.showToast(message);
 }
 
 export default function Toast() {
@@ -14,11 +13,8 @@ export default function Toast() {
   const [text, setText] = useState("");
 
   useEffect(() => {
-    const handleToast = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      const msg = customEvent.detail;
+    const trigger = (msg: string) => {
       setText(msg);
-
       const el = toastRef.current;
       if (!el) return;
 
@@ -31,14 +27,24 @@ export default function Toast() {
           opacity: 1,
           duration: 0.4,
           onComplete: () => {
-            gsap.to(el, { opacity: 0, y: 10, delay: 1.6, duration: 0.4 });
+            gsap.to(el, { opacity: 0, y: 10, delay: 2.2, duration: 0.4 });
           },
         }
       );
     };
 
-    window.addEventListener("app:toast", handleToast);
-    return () => window.removeEventListener("app:toast", handleToast);
+    const handleCustomEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      trigger(customEvent.detail);
+    };
+
+    window.addEventListener("app:toast", handleCustomEvent);
+    const unsub = oceanStore.onToast(trigger);
+
+    return () => {
+      window.removeEventListener("app:toast", handleCustomEvent);
+      unsub();
+    };
   }, []);
 
   return (
