@@ -25,7 +25,7 @@ export const stats: StatItem[] = [
 export const socialLinks: SocialLink[] = [
   { label: "GitHub", url: "https://github.com/ESTAS-crypto" },
   { label: "LinkedIn", url: "https://linkedin.com/in/evanatharasya" },
-  { label: "Instagram", url: "https://instagram.com/evanatharasya" },
+  { label: "Instagram", url: "https://instagram.com/evanatharasya.x" },
 ];
 
 export const depthZones: DepthZone[] = [
