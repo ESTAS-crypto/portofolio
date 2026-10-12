@@ -70,7 +70,13 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     let W = window.innerWidth;
     let H = window.innerHeight;
 
-    const NF = W < 640 ? 12 : W < 1100 ? 18 : 26;
+    const getFishCount = (w: number) => {
+      if (w < 640) return 22; // Mobile: dinaikkan dari 12 ke 22
+      if (w < 1024) return 38; // Tablet: dinaikkan dari 18 ke 38
+      if (w < 1440) return 56; // Laptop: dinaikkan dari 26 ke 56
+      return 68; // Desktop lebar
+    };
+
     const NJ = W < 640 ? 4 : W < 1100 ? 5 : 7;
 
     const F: Fish[] = [];
@@ -84,6 +90,25 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       });
     };
 
+    const syncFishCount = () => {
+      const targetNF = getFishCount(W);
+      while (F.length < targetNF) {
+        F.push({
+          x: rnd() * W,
+          y: rnd() * H,
+          vx: rnd() * 2 - 1,
+          vy: rnd() * 2 - 1,
+          s: 0.55 + rnd() * 0.45,
+          p: rnd() * 6.28,
+          b: 0,
+          e: 0,
+        });
+      }
+      if (F.length > targetNF) {
+        F.length = targetNF;
+      }
+    };
+
     const handleResize = () => {
       W = window.innerWidth;
       H = window.innerHeight;
@@ -91,9 +116,11 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       cv.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       updateHomes();
+      syncFishCount();
     };
 
-    for (let i = 0; i < NF; i++) {
+    const initialNF = getFishCount(W);
+    for (let i = 0; i < initialNF; i++) {
       F.push({
         x: rnd() * W,
         y: rnd() * H,
@@ -419,7 +446,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
         ctx.translate(a.x, a.y);
         ctx.rotate(angle);
         ctx.scale(a.s, a.s);
-        ctx.fillStyle = `hsla(${185 + depth * 70}, 85%, ${72 - depth * 22 + a.e * 18}%, ${0.5 * fishAlpha + a.e * 0.4})`;
+        ctx.fillStyle = `hsla(${185 + depth * 70}, 88%, ${72 - depth * 22 + a.e * 18}%, ${Math.min(1, 0.72 * fishAlpha + a.e * 0.45)})`;
 
         // Badan ikan
         ctx.beginPath();
