@@ -68,10 +68,10 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
         );
       });
 
-      const startH1 = isNight ? "rgb(8,16,44)" : "rgb(59,127,196)";
-      const startH2 = isNight ? "rgb(52,82,140)" : "rgb(191,230,251)";
-      const endH1 = isNight ? "rgb(4,10,28)" : "rgb(31,79,143)";
-      const endH2 = isNight ? "rgb(24,44,96)" : "rgb(255,200,150)";
+      const startH1 = isNight ? "rgb(6,12,34)" : "rgb(59,127,196)";
+      const startH2 = isNight ? "rgb(20,38,76)" : "rgb(191,230,251)";
+      const endH1 = isNight ? "rgb(3,6,18)" : "rgb(31,79,143)";
+      const endH2 = isNight ? "rgb(10,20,44)" : "rgb(255,200,150)";
 
       gsap.set(heroRef.current, {
         "--h1": startH1,

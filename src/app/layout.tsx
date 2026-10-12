@@ -50,7 +50,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${bricolageGrotesque.variable} ${figtree.variable}`}>
+    <html
+      lang="id"
+      className={`${bricolageGrotesque.variable} ${figtree.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          id="tod-init"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var h=new Date().getHours();var isNight=h>=19||h<5;document.documentElement.dataset.tod=isNight?'night':'day';}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

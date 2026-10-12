@@ -139,7 +139,8 @@ main {
 }
 
 /* Hero Section */
-#hero {
+#hero,
+html[data-tod="day"] #hero {
   position: relative;
   height: 100svh;
   min-height: 600px;
@@ -1523,33 +1524,50 @@ footer {
 }
 
 /* Night Mode Hero */
+html[data-tod="night"] #hero,
 #hero[data-tod="night"] {
-  --h1: rgb(8, 16, 44);
-  --h2: rgb(52, 82, 140);
+  --h1: rgb(6, 12, 34);
+  --h2: rgb(20, 38, 76);
 }
 
+html[data-tod="night"] #hero .hero-copy,
 #hero[data-tod="night"] .hero-copy {
   color: #eaf6ff;
 }
 
+html[data-tod="night"] #hero .bird,
 #hero[data-tod="night"] .bird {
   color: #cfe0ff;
+  opacity: 0.55;
 }
 
+html[data-tod="night"] #hero .cl,
 #hero[data-tod="night"] .cl {
-  opacity: 0.28;
+  opacity: 0.18;
+  filter: brightness(0.65);
 }
 
+html[data-tod="night"] #hero .sun,
 #hero[data-tod="night"] .sun {
-  background: radial-gradient(circle, #fff 0, #dbe7ff 40%, transparent 70%);
-  animation: none;
+  background: radial-gradient(circle, #ffffff 0, #d6e4ff 35%, rgba(180, 210, 255, 0.4) 55%, transparent 70%);
+  box-shadow: 0 0 50px rgba(180, 215, 255, 0.35);
+  animation: moonGlow 5s ease-in-out infinite alternate;
 }
 
+@keyframes moonGlow {
+  to {
+    filter: brightness(1.2);
+    box-shadow: 0 0 65px rgba(200, 230, 255, 0.5);
+  }
+}
+
+html[data-tod="night"] #hero::before,
 #hero[data-tod="night"]::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
+  pointer-events: none;
   background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
     radial-gradient(1.5px 1.5px at 28% 8%, #fff, transparent),
     radial-gradient(2px 2px at 44% 22%, #fff, transparent),
@@ -1557,7 +1575,11 @@ footer {
     radial-gradient(1.5px 1.5px at 78% 30%, #fff, transparent),
     radial-gradient(2px 2px at 90% 14%, #fff, transparent),
     radial-gradient(1.5px 1.5px at 8% 40%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 55% 36%, #fff, transparent);
+    radial-gradient(1.5px 1.5px at 55% 36%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 22% 52%, #fff, transparent),
+    radial-gradient(2px 2px at 85% 48%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 38% 65%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 70% 60%, #fff, transparent);
   animation: tw 4s ease-in-out infinite alternate;
 }
 
