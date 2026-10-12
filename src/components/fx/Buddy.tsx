@@ -107,6 +107,9 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     const speak = (msg: string, durationMs = 3400) => {
+      // Jangan pernah bicara jika sedang berada di daratan atau buddy tersembunyi
+      if (oceanStore.getDepth() >= 0 || opacity <= 0.05 || oceanStore.isCalm()) return;
+
       say.textContent = msg;
       gsap.killTweensOf(say);
       gsap.fromTo(
@@ -166,8 +169,30 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       const v = oceanStore.getDepth();
       const calm = oceanStore.isCalm();
 
-      opacity += (clamp(-v / 120, 0, 1) - opacity) * 0.1;
-      const visible = opacity > 0.01 && !calm;
+      // Jika berada di daratan / angkasa (v >= 0) atau mode tenang:
+      // Penyelam, ikan peliharaan, dan balon bicara langsung hilang seketika!
+      if (v >= 0 || calm) {
+        if (opacity > 0) {
+          opacity = 0;
+          bd.style.opacity = "0";
+          pet.style.opacity = "0";
+          bd.style.visibility = "hidden";
+          pet.style.visibility = "hidden";
+          if (speakTimer) {
+            clearTimeout(speakTimer);
+            speakTimer = null;
+          }
+          gsap.killTweensOf(say);
+          gsap.set(say, { opacity: 0, y: -6 });
+        }
+        return;
+      }
+
+      // Saat di dalam air: respon fade-out cepat saat scroll ke atas, fade-in halus saat menyelam
+      const targetOp = clamp(-v / 80, 0, 1);
+      const fadeSpeed = dy < 0 ? 0.35 : 0.15;
+      opacity += (targetOp - opacity) * fadeSpeed;
+      const visible = opacity > 0.01;
 
       bd.style.opacity = opacity.toFixed(3);
       pet.style.opacity = opacity.toFixed(3);

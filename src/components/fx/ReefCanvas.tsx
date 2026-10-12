@@ -196,8 +196,9 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
         }
       }
 
-      // Klik air untuk melempar 4 butir makanan ikan
-      if (fishAlpha > 0.2) {
+      // Klik air untuk melempar 4 butir makanan ikan (hanya saat berada di bawah laut)
+      const currentV = oceanStore.getDepth();
+      if (fishAlpha > 0.2 && currentV < 0 && !oceanStore.isCalm()) {
         for (let i = 0; i < 4; i++) {
           P.push({
             x: px + (rnd() - 0.5) * 26,
@@ -232,10 +233,30 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       const v = oceanStore.getDepth();
       const calm = oceanStore.isCalm();
 
-      fishAlpha += (clamp(-v / 150, 0, 1) - fishAlpha) * 0.08;
-      jellyAlpha += (clamp((-v - 150) / 150, 0, 1) - jellyAlpha) * 0.06;
+      // Jika berada di daratan / udara (v >= 0), mode tenang, atau tab tidak aktif:
+      // Segera kosongkan butiran makanan ikan, percikan ubur-ubur, dan bersihkan kanvas seketika!
+      if (v >= 0 || calm || document.hidden) {
+        if (P.length > 0) P.length = 0;
+        if (S.length > 0) S.length = 0;
+        if (fishAlpha > 0 || jellyAlpha > 0) {
+          fishAlpha = 0;
+          jellyAlpha = 0;
+          ctx.clearRect(0, 0, W, H);
+        }
+        return;
+      }
 
-      if ((fishAlpha < 0.02 && jellyAlpha < 0.02) || document.hidden || calm) {
+      // Saat di dalam air: respon fade-out cepat saat scroll ke atas, fade-in halus saat menyelam
+      const targetFishAlpha = clamp(-v / 120, 0, 1);
+      const targetJellyAlpha = clamp((-v - 150) / 150, 0, 1);
+      const fadeSpeed = dy < 0 ? 0.32 : 0.12;
+
+      fishAlpha += (targetFishAlpha - fishAlpha) * fadeSpeed;
+      jellyAlpha += (targetJellyAlpha - jellyAlpha) * fadeSpeed;
+
+      if (fishAlpha < 0.01 && jellyAlpha < 0.01) {
+        if (P.length > 0) P.length = 0;
+        ctx.clearRect(0, 0, W, H);
         return;
       }
 
@@ -263,7 +284,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
           continue;
         }
 
-        ctx.fillStyle = `rgba(255, 226, 150, ${Math.min(1, p.l) * 0.9 * Math.max(fishAlpha, 0.4)})`;
+        ctx.fillStyle = `rgba(255, 226, 150, ${Math.min(1, p.l) * 0.9 * fishAlpha})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 3, 0, 6.283);
         ctx.fill();
