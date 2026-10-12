@@ -129,6 +129,17 @@ test.describe("Portfolio v3 Comprehensive Tests", () => {
 
     // Chest label changes to discovered text
     await expect(chest.locator(".cl")).toHaveText("Harta karun ditemukan!");
+
+    // Verify caption is perfectly centered with chest graphic (< 1px difference)
+    const alignmentDiff = await page.evaluate(() => {
+      const c = document.querySelector("#chest") as HTMLElement;
+      const s = c.querySelector("svg") as SVGElement;
+      const l = c.querySelector(".cl") as HTMLElement;
+      const sR = s.getBoundingClientRect();
+      const lR = l.getBoundingClientRect();
+      return Math.abs((sR.left + sR.width / 2) - (lR.left + lR.width / 2));
+    });
+    expect(alignmentDiff).toBeLessThan(1);
   });
 
   test("6. Verifikasi Tombol Naik ke Permukaan (#up)", async ({ page }) => {

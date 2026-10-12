@@ -166,13 +166,13 @@ main {
   }
 }
 
-.cl {
+#hero .cl {
   position: absolute;
   color: #fff;
   opacity: 0.93;
 }
 
-.cl svg {
+#hero .cl svg {
   display: block;
   width: 100%;
   animation: bob 9s ease-in-out infinite alternate;
@@ -1890,7 +1890,7 @@ footer {
 }
 
 @media (max-width: 600px) {
-  .cl {
+  #hero .cl {
     scale: 0.6;
     transform-origin: 0 0;
   }
@@ -2355,20 +2355,27 @@ footer {
 
 /* 8. Peti Harta Karun (Contact) */
 .chest {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin: 0 auto clamp(30px, 6vw, 52px);
-  width: clamp(130px, 22vw, 200px);
+  width: fit-content;
+  max-width: 100%;
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
   color: #fff;
   font: 600 0.95rem var(--body);
+  text-align: center;
 }
 
 .chest svg {
   display: block;
-  width: 100%;
+  width: clamp(130px, 22vw, 200px);
+  height: auto;
+  margin: 0 auto;
   overflow: visible;
   transition: transform 0.3s;
 }
@@ -2401,12 +2408,39 @@ footer {
   opacity: 1;
 }
 
+.chest .chest-caption,
 .chest .cl {
-  display: block;
-  margin-top: 12px;
-  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  font-size: clamp(0.85rem, 2.4vw, 0.98rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: #ffe9a8;
   white-space: nowrap;
+  text-align: center;
+  transform: none !important;
+  scale: 1 !important;
+  transform-origin: center center !important;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(255, 233, 168, 0.1);
+  border: 1px solid rgba(255, 233, 168, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+}
+
+.chest:hover .chest-caption,
+.chest:hover .cl {
+  background: rgba(255, 233, 168, 0.2);
+  border-color: rgba(255, 233, 168, 0.5);
+  color: #fff3c9;
+  box-shadow: 0 0 16px rgba(255, 233, 168, 0.3);
+  transform: translateY(-2px) !important;
 }
 
 #contact h2 {

@@ -75,7 +75,7 @@ export default function TreasureChest({ reducedMotion = false }: { reducedMotion
           <path d="M20 58A60 42 0 0 1 140 58" stroke="#5b3a1a" strokeWidth="4" fill="none" />
         </g>
       </svg>
-      <span className="cl">{isOpen ? "Harta karun ditemukan!" : "Klik petinya"}</span>
+      <span className="chest-caption cl">{isOpen ? "Harta karun ditemukan!" : "Klik petinya"}</span>
     </button>
   );
 }
