@@ -91,3 +91,81 @@ Catatan teknis keputusan arsitektur, pemetaan kode monolitik asli ke struktur mo
   3. Menghapus `schoolFish` dari dependensi `useGSAP` sehingga tween tidak dibuat berulang kali.
   4. Menjadikan parameter `Seaweed` deterministik untuk mencegah React hydration mismatch.
 - **Hasil Verifikasi**: Di kedalaman 843m maupun 877m–880m, seluruh ikan proyek (ikan interaktif), ikan kecil gerombolan (`.sf`), dan rumput laut (`.weed`) tampil utuh, berenang, dan berinteraksi dengan sempurna.
+
+---
+
+## 4. Porting Portfolio-v3 (Fitur Baru & Penyempurnaan Lanjutan)
+
+Porting fitur lengkap dari spesifikasi referensi `Evan Atharasya · Portofolio (4).html` (Portfolio-v3) tanpa merombak arsitektur Next.js 15 + React 19 yang sudah stabil:
+
+### 4.1 Modul & Komponen yang Diimplementasikan
+1. **Mode Tenang (Calm Mode)**:
+   - Tombol `#calmBtn` di kapsul audio dengan ikon ombak.
+   - Mengontrol class `.calm` pada `<html>` dan disinkronkan ke `localStorage('calm')`.
+   - Menghentikan/menyembunyikan animasi berat: buddy, pet fish, boids reef canvas, makhluk laut dalam, gelembung latar, burung, dan mematikan audio.
+   - Pintasan keyboard: `C`.
+
+2. **AudioEngine v2**:
+   - Synthesizer Web Audio berbasis 4-lapisan Pink Noise (buffer 6 detik dengan dual-pole highpass) untuk lapisan angin (bandpass 650Hz), ombak laut (lowpass 1000Hz), laut dalam (lowpass 450Hz), dan drone bawah air (lowpass 120Hz).
+   - Pemetaan dinamis multi-filter terhadap kedalaman `v`.
+   - Efek transisi batas permukaan air: `plunge` (-8m) dan `emerge` (+8m).
+   - Efek suara interaktif: `sweepCard()` saat klik kartu atau ikan proyek, `singWhale()` saat paus melintas, `rumbleMegalodon()` saat megalodon muncul.
+   - Sound gesture safety: audio hanya dimulai setelah interaksi pengguna sadar (klik `#audBtn`).
+
+3. **Penyelam (Buddy) & Ikan Peliharaan**:
+   - Komponen `src/components/fx/Buddy.tsx` dengan SVG diver terartikulasi (tangan, kaki, sirip, tabung oksigen, syal bergoyang).
+   - Lampu sorot kedalaman otomatis menyala di zona gelap (`--lamp`).
+   - Penjejakan mouse halus, kedipan mata periodik, klik untuk flip 360° + semburan 9 gelembung regulator + dialog kontekstual.
+   - Ikan peliharaan (`.bd-pet`) mengorbit secara dinamis di sekitar penyelam.
+
+4. **Reef Canvas (Terumbu Interaktif)**:
+   - Komponen `src/components/fx/ReefCanvas.tsx` menggunakan single 2D Canvas `z-20`.
+   - Algoritma Boids untuk kawanan ikan (12-26 ekor) dengan perilaku interaktif: menghindar kursor, bereaksi pada ancaman predator (`oceanStore.state.threat`), dan mengejar makanan pelet.
+   - Interaksi pelet makanan: klik air untuk melempar 4 butir makanan ikan dengan kilau makan dan percikan spark.
+   - Ubur-ubur interaktif (4-7 ekor): sentuh dan lempar (drag & throw), efek petir elektrik berantai (lightning zap), dan percikan plankton.
+   - Pengecualian klik interaktif UI (`button, a, input, [role='button'], #portal, .card, .fish, .chest, .aud`).
+
+5. **Paus & Megalodon v3**:
+   - Deformasi kurva Catmull-Rom closed cubic Bezier (`src/lib/bezierDeform.ts`) yang menghasilkan pergerakan gelombang tubuh organik real-time (bukan sekadar rotasi SVG kaku).
+   - Penjadwal kemunculan acak (RNG) makhluk di kedalaman dengan konfigurasi produksi serta mode pengujian instan via URL `?ocean=test`.
+   - Siaran ancaman `oceanStore.setThreat({ x, y, r })` saat makhluk lewat, memicu kawanan ikan menghindar secara realistis.
+   - Efek visual peringatan merah (`.alert`) dan getaran layar saat Megalodon mendekat, dipadukan efek suara gemuruh frekuensi rendah.
+
+6. **Filter Keahlian (Skill -> Proyek)**:
+   - Marquee teknologi di `#about` interaktif dua arah (klik atau Enter/Space).
+   - Menyorot kartu di `#work` dan ikan di `#deep` yang cocok (`.hit`), dan meredupkan yang tidak cocok (`.dim`).
+   - Notifikasi Toast instan menampilkan jumlah proyek yang relevan.
+   - Marquee menjeda animasi saat disentuh/hover untuk kenyamanan pemilihan teknologi.
+
+7. **Riak Air Hero**:
+   - Komponen `src/components/fx/RippleCanvas.tsx` terpasang di atas ombak section Hero.
+   - Kanvas 2D merender gelombang elips memudar saat kursor mouse bergerak atau mengklik zona air hero (80% - 97% ketinggian).
+
+8. **Peti Harta Karun (Treasure Chest)**:
+   - Komponen `src/components/sections/TreasureChest.tsx` di section Kontak.
+   - Tutup peti SVG berotasi elastis menggunakan cubic-bezier pegas.
+   - Semburan 28 koin emas partikel bergaya fisika saat dibuka, dengan kilau emas dan teks label status dinamis.
+
+9. **Tombol Naik ke Permukaan & Pintasan Keyboard**:
+   - Tombol kapsul `#up` muncul otomatis saat kedalaman scroll melampaui `2.4 H`.
+   - Semburan gelembung air saat diklik dan transisi kembali ke permukaan laut.
+   - Pintasan keyboard global:
+     - `C`: Toggle Mode Tenang.
+     - `M`: Bisukan / aktifkan suara laut.
+     - `1` - `4`: Lompat ke Tentang, Proyek, Jelajah, Kontak.
+     - `?`: Menampilkan ringkasan pintasan keyboard.
+
+10. **Penunjuk Kedalaman Responsif & Store Terpusat**:
+    - `src/lib/oceanStore.ts` mengkalkulasi variabel `v` satu kali per frame pada ticker GSAP terpusat.
+    - Layout bersih dan adaptif pada mobile (`<= 760px`, `<= 360px`).
+    - Aturan proteksi media query layar pendek desktop (`max-height: 520px and min-width: 761px`) agar tidak menimpa layout kapsul mobile.
+
+### 4.2 Hasil Pengujian Otomatis (Playwright E2E)
+Seluruh 7 skenario pengujian di `tests/smoke.spec.ts` berjalan dan lulus 100%:
+1. `Verifikasi render Hero dan Navigasi` &mdash; PASSED
+2. `Verifikasi Project Portal buka, panah keyboard, dan Escape` &mdash; PASSED
+3. `Verifikasi Mode Tenang (Calm Mode) toggle dan shortcut C` &mdash; PASSED
+4. `Verifikasi Filter Skill di Tentang ke Proyek` &mdash; PASSED
+5. `Verifikasi Peti Harta Karun di Kontak` &mdash; PASSED
+6. `Verifikasi Tombol Naik ke Permukaan (#up)` &mdash; PASSED
+7. `Verifikasi Pintasan Keyboard (? untuk bantuan, M untuk bisukan audio)` &mdash; PASSED

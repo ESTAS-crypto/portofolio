@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { oceanStore } from "@/lib/oceanStore";
 
 export default function TreasureChest({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,12 @@ export default function TreasureChest({ reducedMotion = false }: { reducedMotion
   const handleClick = () => {
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
+
+    oceanStore.showToast(
+      nextOpen
+        ? "Harta karun ditemukan! Sebuah pesan rahasia: teruslah berkarya dan berenang."
+        : "Peti ditutup kembali."
+    );
 
     if (nextOpen && !reducedMotion && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();

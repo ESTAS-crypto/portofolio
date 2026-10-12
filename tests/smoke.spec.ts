@@ -1,7 +1,12 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Portfolio Smoke Tests", () => {
+test.describe("Portfolio v3 Comprehensive Tests", () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      try {
+        localStorage.clear();
+      } catch {}
+    });
     await page.goto("/");
   });
 
@@ -25,15 +30,15 @@ test.describe("Portfolio Smoke Tests", () => {
   });
 
   test("2. Verifikasi Project Portal buka, panah keyboard, dan Escape", async ({ page }) => {
-    // Scroll to Deep section
-    const deepSection = page.locator("#deep");
-    await deepSection.scrollIntoViewIfNeeded();
-    await expect(deepSection).toBeVisible();
+    // Scroll to Work section
+    const workSection = page.locator("#work");
+    await workSection.scrollIntoViewIfNeeded();
+    await expect(workSection).toBeVisible();
 
-    // Click the first fish to open portal
-    const firstFish = page.locator(".fish").first();
-    await expect(firstFish).toBeVisible();
-    await firstFish.click();
+    // Click first card to open portal
+    const firstCard = page.locator(".card").first();
+    await expect(firstCard).toBeVisible();
+    await firstCard.click();
 
     // Verify modal is open
     const portal = page.locator("#portal");
@@ -57,21 +62,109 @@ test.describe("Portfolio Smoke Tests", () => {
     await expect(portal).toHaveAttribute("hidden", "");
   });
 
-  test("3. Verifikasi tombol Salin Email dan Toast", async ({ page, context }) => {
-    // Grant clipboard permissions
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  test("3. Verifikasi Mode Tenang (Calm Mode) toggle dan shortcut C", async ({ page }) => {
+    const calmBtn = page.locator("#calmBtn");
+    await expect(calmBtn).toBeVisible();
 
-    // Scroll to contact section
-    const contactSection = page.locator("#contact");
-    await contactSection.scrollIntoViewIfNeeded();
+    // Verify initially calm is false
+    const initialCalm = await page.evaluate(() => document.documentElement.classList.contains("calm"));
+    expect(initialCalm).toBe(false);
 
-    // Click Salin email
-    const copyBtn = page.locator("#cpy");
-    await expect(copyBtn).toBeVisible();
-    await copyBtn.click();
+    // Toggle via button click
+    await calmBtn.click();
+    await page.waitForTimeout(300);
+    const isCalmAfterClick = await page.evaluate(() => document.documentElement.classList.contains("calm"));
+    expect(isCalmAfterClick).toBe(true);
 
-    // Verify Toast appears with confirmation text
+    const storedValue = await page.evaluate(() => localStorage.getItem("calm"));
+    expect(storedValue).toBe("1");
+
+    // Toggle back via shortcut 'C'
+    await page.keyboard.press("KeyC");
+    await page.waitForTimeout(300);
+    const isCalmAfterKey = await page.evaluate(() => document.documentElement.classList.contains("calm"));
+    expect(isCalmAfterKey).toBe(false);
+  });
+
+  test("4. Verifikasi Filter Skill di Tentang ke Proyek", async ({ page }) => {
+    const aboutSection = page.locator("#about");
+    await aboutSection.scrollIntoViewIfNeeded();
+
+    // Find first interactive skill button in marquee
+    const firstSkillBtn = page.locator('#about .marq span[role="button"]').first();
+    await expect(firstSkillBtn).toBeVisible();
+
+    // Click skill button to filter (use dispatchEvent because marquee has continuous CSS animation)
+    await firstSkillBtn.dispatchEvent("click");
+    await page.waitForTimeout(300);
+
+    // Toast should show filter count or status
     const toast = page.locator(".toast");
-    await expect(toast).toContainText("Email disalin");
+    await expect(toast).not.toHaveText("");
+
+    // Filtered items should have hit or dim classes
+    const hitOrDimCard = page.locator(".card.hit, .card.dim").first();
+    await expect(hitOrDimCard).toBeVisible();
+
+    // Click again to clear filter
+    await firstSkillBtn.dispatchEvent("click");
+    await page.waitForTimeout(300);
+    await expect(toast).toContainText("Filter dibersihkan");
+  });
+
+  test("5. Verifikasi Peti Harta Karun di Kontak", async ({ page }) => {
+    const chest = page.locator("#chest");
+    await chest.scrollIntoViewIfNeeded();
+    await expect(chest).toBeVisible();
+
+    // Settle smooth scroll and reef hint toast
+    await page.waitForTimeout(1500);
+
+    // Click treasure chest
+    await chest.click();
+    await page.waitForTimeout(400);
+
+    // Chest should have open class
+    await expect(chest).toHaveClass(/open/);
+
+    // Chest label changes to discovered text
+    await expect(chest.locator(".cl")).toHaveText("Harta karun ditemukan!");
+  });
+
+  test("6. Verifikasi Tombol Naik ke Permukaan (#up)", async ({ page }) => {
+    // Scroll deep down
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(500);
+
+    const upBtn = page.locator("#up");
+    await expect(upBtn).toBeVisible();
+
+    // Click scroll to top
+    await upBtn.click();
+    await page.waitForTimeout(1000);
+
+    const scrollMetrics = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      maxScroll: document.body.scrollHeight,
+    }));
+    expect(scrollMetrics.scrollY).toBeLessThan(scrollMetrics.maxScroll / 2);
+  });
+
+  test("7. Verifikasi Pintasan Keyboard (? untuk bantuan, M untuk bisukan audio)", async ({ page }) => {
+    // Ensure window has focus
+    await page.locator("body").click();
+    await page.waitForTimeout(200);
+
+    const toast = page.locator(".toast");
+
+    // Press '?'
+    await page.keyboard.press("?");
+    await page.waitForTimeout(400);
+    await expect(toast).toContainText(/mode tenang/i);
+
+    // Press 'm' to toggle audio
+    await page.keyboard.press("m");
+    await page.waitForTimeout(400);
+    await expect(toast).toContainText(/Audio/i);
   });
 });

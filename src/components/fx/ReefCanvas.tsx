@@ -52,6 +52,8 @@ interface Spark {
   h: number; // hue
 }
 
+let hasShownReefHint = false;
+
 export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -133,7 +135,6 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     let lastTime = 0;
     let grab: { j: Jelly; ox: number; oy: number } | null = null;
     let lastSparkTime = 0;
-    let hasShownHint = false;
 
     const getRadius = (j: Jelly) => 34 * j.z;
 
@@ -238,8 +239,8 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
         return;
       }
 
-      if (jellyAlpha > 0.5 && !hasShownHint) {
-        hasShownHint = true;
+      if (jellyAlpha > 0.5 && !hasShownReefHint) {
+        hasShownReefHint = true;
         oceanStore.showToast("Coba sentuh dan tarik ubur-ubur. Klik air untuk memberi makan ikan.");
       }
 

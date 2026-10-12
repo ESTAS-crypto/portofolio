@@ -81,6 +81,8 @@ export default function About({ reducedMotion = false }: AboutProps) {
         } else {
           oceanStore.showToast(`Belum ada proyek publik dengan ${nextSkill}.`);
         }
+      } else {
+        oceanStore.showToast("Filter dibersihkan");
       }
     },
     [activeSkill, setActiveSkill]
@@ -117,18 +119,16 @@ export default function About({ reducedMotion = false }: AboutProps) {
       <div className="marq" aria-label="Teknologi yang saya pakai">
         <div className="row" id="r1">
           {skills.concat(skills).map((skill, i) => {
-            const isFirstHalf = i < skills.length;
             const isSelected = activeSkill.toLowerCase() === skill.toLowerCase();
             return (
               <span
                 key={i}
                 className={isSelected ? "on" : ""}
-                role={isFirstHalf ? "button" : undefined}
-                tabIndex={isFirstHalf ? 0 : -1}
-                aria-label={isFirstHalf ? `Lihat proyek yang memakai ${skill}` : undefined}
-                aria-hidden={!isFirstHalf ? "true" : undefined}
-                onClick={isFirstHalf ? () => handleSkillClick(skill) : undefined}
-                onKeyDown={isFirstHalf ? (e) => handleKeyDown(e, skill) : undefined}
+                role="button"
+                tabIndex={0}
+                aria-label={`Lihat proyek yang memakai ${skill}`}
+                onClick={() => handleSkillClick(skill)}
+                onKeyDown={(e) => handleKeyDown(e, skill)}
               >
                 {skill}
               </span>
@@ -138,18 +138,16 @@ export default function About({ reducedMotion = false }: AboutProps) {
 
         <div className="row r" id="r2">
           {reversedSkills.concat(reversedSkills).map((skill, i) => {
-            const isFirstHalf = i < reversedSkills.length;
             const isSelected = activeSkill.toLowerCase() === skill.toLowerCase();
             return (
               <span
                 key={i}
                 className={isSelected ? "on" : ""}
-                role={isFirstHalf ? "button" : undefined}
-                tabIndex={isFirstHalf ? 0 : -1}
-                aria-label={isFirstHalf ? `Lihat proyek yang memakai ${skill}` : undefined}
-                aria-hidden={!isFirstHalf ? "true" : undefined}
-                onClick={isFirstHalf ? () => handleSkillClick(skill) : undefined}
-                onKeyDown={isFirstHalf ? (e) => handleKeyDown(e, skill) : undefined}
+                role="button"
+                tabIndex={0}
+                aria-label={`Lihat proyek yang memakai ${skill}`}
+                onClick={() => handleSkillClick(skill)}
+                onKeyDown={(e) => handleKeyDown(e, skill)}
               >
                 {skill}
               </span>

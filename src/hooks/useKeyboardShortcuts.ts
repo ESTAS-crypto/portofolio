@@ -30,7 +30,8 @@ export function useKeyboardShortcuts({ onNavigate, isPortalOpen = false }: Short
         if (oceanStore.isCalm()) {
           oceanStore.showToast("Matikan mode tenang terlebih dahulu untuk menyalakan suara");
         } else {
-          audioEngine.toggle();
+          const active = audioEngine.toggle();
+          oceanStore.showToast(active ? "Audio aktif" : "Audio dibisukan");
         }
       } else if (key === "1") {
         onNavigate("about");
