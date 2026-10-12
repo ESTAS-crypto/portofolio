@@ -182,3 +182,25 @@ Seluruh 7 skenario pengujian di `tests/smoke.spec.ts` berjalan dan lulus 100%:
    - Menambahkan deklarasi CSS `.beast`, `.alert`, `.ring`, dan `@keyframes wbob` dengan `pointer-events: none` ke [globals.css](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/app/globals.css) agar tidak mengganggu klik elemen halaman.
 5. **Perbaikan Build Next.js 15 (`Invariant: no direct app page entry found for /_not-found`)**:
    - Menambahkan [not-found.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/app/not-found.tsx) untuk memenuhi invariant Next.js 15 App Router sehingga `pnpm build` sukses 100%.
+
+### 4.4 Perbaikan Masalah Interaksi, Scroll Portal, & Sinkronisasi Waktu Malam
+
+1. **Perbaikan Kepala Buddy Berosilasi / Looping Bertubi-tubi**:
+   - **Penyebab**: Karakter penyelam berenang menghadap ke kanan. Ketika kursor mouse berada di sebelah kiri (area membaca teks konten yang mencakup sebagian besar layar), nilai sudut relatif `Math.atan2(dy, dx)` berada di sekitar ±180° (branch cut). Setiap pergerakan vertikal kecil saat penyelam mengapung menyebabkan sudut melompat drastis antara +28° (menunduk) dan -28° (menengadah) secara bergantian di setiap frame (feedback loop).
+   - **Solusi**: Di [Buddy.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/components/fx/Buddy.tsx), menggunakan koordinat jangkar stabil dari container luar (`bdRect`), menerapkan deadzone jarak (`> 45px` dan `pointer: fine`), serta menggunakan formula pitch vertikal bebas diskontinuitas `Math.atan2(ptrDy, Math.max(80, Math.abs(ptrDx)))` yang dihaluskan secara eksponensial (`headRot += (targetHeadDeg - headRot) * 0.1`). Gerakan kepala kini stabil dan halus tanpa osilasi.
+
+2. **Perbaikan Modal Project Portal Tidak Bisa Di-scroll**:
+   - **Penyebab**: 
+     1. Lenis menangani event `wheel` dan `touchmove` pada `window` secara default dan memanggil `event.preventDefault()` jika elemen target tidak memiliki atribut `data-lenis-prevent`.
+     2. Transisi zoom SVG `clipPath: circle(...)` mempertahankan inline style `clipPath`, yang membatasi area interaksi viewport.
+   - **Solusi**:
+     1. Pada [ProjectPortal.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/components/portal/ProjectPortal.tsx), menambahkan atribut `data-lenis-prevent` dan `data-lenis-prevent-scroll`, serta `onWheel` dan `onTouchMove` `stopPropagation()`.
+     2. Meng-clamp titik pusat ekspansi `cx` dan `cy` ke batas viewport, serta membersihkan inline style `clipPath` menggunakan `gsap.set(portal, { clearProps: "clipPath" })` saat animasi selesai terbuka.
+     3. Pada [globals.css](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/app/globals.css), memastikan `#portal` memiliki aturan `overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain;`. Modal kini dapat di-scroll dengan mulus baik menggunakan mouse wheel maupun gesture sentuh.
+
+3. **Perbaikan Mode Malam Otomatis Berdasarkan Waktu (19.00 - 05.00)**:
+   - **Penyebab**: `useNightMode` awalnya mengembalikan `false` secara default pada SSR dan klien tertahan oleh `suppressHydrationWarning`. Selain itu, GSAP mengunci nilai warna inline `--h1: rgb(59,127,196)` dan `--h2: rgb(191,230,251)` saat inisialisasi awal sehingga menimpa selector CSS `#hero[data-tod="night"]`.
+   - **Solusi**:
+     1. Pada [useNightMode.ts](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/hooks/useNightMode.ts), menghitung `hour >= 19 || hour < 5` secara konsisten pada inisialisasi awal dan menambahkan interval timer 10 detik agar pergantian waktu malam/siang terjadi secara otomatis secara real-time.
+     2. Pada [Hero.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/components/sections/Hero.tsx), mendaftarkan `isNight` dalam dependencies GSAP, menetapkan variabel awal `--h1: rgb(8,16,44)` dan `--h2: rgb(52,82,140)` secara eksplisit via `gsap.set`, serta menghapus `suppressHydrationWarning`. Tampilan langit malam (bintang berkelip, bulan temaram, dan gradien gelap) kini tampil akurat saat jam 19.00 s.d. 05.00.
+

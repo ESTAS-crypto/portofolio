@@ -68,6 +68,16 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
         );
       });
 
+      const startH1 = isNight ? "rgb(8,16,44)" : "rgb(59,127,196)";
+      const startH2 = isNight ? "rgb(52,82,140)" : "rgb(191,230,251)";
+      const endH1 = isNight ? "rgb(4,10,28)" : "rgb(31,79,143)";
+      const endH2 = isNight ? "rgb(24,44,96)" : "rgb(255,200,150)";
+
+      gsap.set(heroRef.current, {
+        "--h1": startH1,
+        "--h2": startH2,
+      });
+
       tl.to(
         ".sun",
         {
@@ -79,8 +89,8 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
         .to(
           heroRef.current,
           {
-            "--h1": () => (heroRef.current?.getAttribute("data-tod") === "night" ? "rgb(4,10,28)" : "rgb(31,79,143)"),
-            "--h2": () => (heroRef.current?.getAttribute("data-tod") === "night" ? "rgb(24,44,96)" : "rgb(255,200,150)"),
+            "--h1": endH1,
+            "--h2": endH2,
           },
           0
         )
@@ -110,7 +120,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
           0
         );
     },
-    { scope: heroRef, dependencies: [reducedMotion], revertOnUpdate: true }
+    { scope: heroRef, dependencies: [reducedMotion, isNight], revertOnUpdate: true }
   );
 
   return (

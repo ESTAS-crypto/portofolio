@@ -745,7 +745,11 @@ footer {
   position: fixed;
   inset: 0;
   z-index: 70;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   background: var(--pbg, #0a2a4a);
   transition: background-color 0.9s;
 }

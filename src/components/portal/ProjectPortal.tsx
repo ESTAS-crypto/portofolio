@@ -52,8 +52,10 @@ export default function ProjectPortal({
         : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 100, height: 60 };
 
       const isFish = triggerElement?.classList.contains("fish") ?? false;
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
+      const rawCx = rect.left + rect.width / 2;
+      const rawCy = rect.top + rect.height / 2;
+      const cx = Math.max(0, Math.min(window.innerWidth, rawCx));
+      const cy = Math.max(0, Math.min(window.innerHeight, rawCy));
 
       const svgEl = triggerElement?.querySelector("svg");
       const flip = isFish && svgEl && Number(gsap.getProperty(svgEl, "scaleX")) < 0 ? -1 : 1;
@@ -76,6 +78,7 @@ export default function ProjectPortal({
 
       const tl = gsap.timeline({
         onComplete: () => {
+          gsap.set(portal, { clearProps: "clipPath" });
           closeBtnRef.current?.focus();
         },
       });
@@ -116,9 +119,18 @@ export default function ProjectPortal({
     const tl = timelineRef.current;
     if (!portal || portal.hidden || !tl) return;
 
+    const rect = triggerElement
+      ? triggerElement.getBoundingClientRect()
+      : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 100, height: 60 };
+    const cx = Math.max(0, Math.min(window.innerWidth, rect.left + rect.width / 2));
+    const cy = Math.max(0, Math.min(window.innerHeight, rect.top + rect.height / 2));
+
+    gsap.set(portal, { clipPath: `circle(150vmax at ${cx}px ${cy}px)` });
+
     tl.eventCallback("onComplete", null);
     tl.eventCallback("onReverseComplete", () => {
       portal.hidden = true;
+      gsap.set(portal, { clearProps: "clipPath" });
       start();
       triggerElement?.focus();
       onClose();
@@ -241,6 +253,10 @@ export default function ProjectPortal({
       aria-modal="true"
       aria-labelledby="pt"
       hidden={!isOpen}
+      data-lenis-prevent
+      data-lenis-prevent-scroll
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
       style={
         {
           "--pbg": `hsl(${currentProject.hue} 55% 13%)`,

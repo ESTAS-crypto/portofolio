@@ -95,8 +95,11 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
     let speakTimer: NodeJS.Timeout | null = null;
     let frameCount = 0;
     let lampVal = 0;
+    let headRot = 0;
+    let hasPointerMoved = false;
 
     const handlePointerMove = (e: PointerEvent) => {
+      hasPointerMoved = true;
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
@@ -209,17 +212,39 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       setRotate(aB, -4 * activity + 6 * Math.sin(phase + 1), 104, 52);
       setRotate(fB, 8 * Math.sin(phase), 124, 60);
 
-      // Rotasi kepala & pergeseran pupil melacak posisi mouse
-      const headRect = head.getBoundingClientRect();
-      const headX = headRect.left + headRect.width / 2;
-      const headY = headRect.top + headRect.height / 2;
+      // Rotasi kepala & pergeseran pupil melacak posisi kursor secara mulus
+      // Gunakan bounding rect container buddy untuk menghindari feedback loop transform kepala
+      const bdRect = bd.getBoundingClientRect();
+      const scaleX = bdRect.width / 240;
+      const scaleY = bdRect.height / 150;
+      const headX = bdRect.left + 136 * scaleX;
+      const headY = bdRect.top + 38 * scaleY;
 
-      let rel = Math.atan2(mouseY - headY, mouseX - headX) - ((rotation + spinState.spin) * Math.PI) / 180;
-      rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+      const isFinePointer = typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+      const ptrDx = mouseX - headX;
+      const ptrDy = mouseY - headY;
+      const dist = Math.hypot(ptrDx, ptrDy);
 
-      setRotate(head, clamp(rel * 57.3 * 0.3, -28, 28), 122, 46);
-      pup.setAttribute("cx", (150 + Math.cos(rel) * 1.6).toFixed(2));
-      pup.setAttribute("cy", (38 + Math.sin(rel) * 1.6).toFixed(2));
+      let targetHeadDeg = 0;
+      let pupilAngle = 0;
+
+      if (hasPointerMoved && isFinePointer && dist > 45) {
+        // Karakter menghadap ke depan (kanan). Untuk mencegah flip 180° saat kursor di area baca kiri,
+        // gunakan pitch vertikal berbasis ptrDy dengan divisor horizontal positif Math.max(80, Math.abs(ptrDx))
+        const pitchAngle = Math.atan2(ptrDy, Math.max(80, Math.abs(ptrDx)));
+        const bodyAngleRad = ((rotation + spinState.spin) * Math.PI) / 180;
+        const relativePitch = pitchAngle - bodyAngleRad * 0.4;
+
+        targetHeadDeg = clamp(relativePitch * 57.3 * 0.35, -24, 24);
+        pupilAngle = pitchAngle;
+      }
+
+      headRot += (targetHeadDeg - headRot) * 0.1;
+
+      setRotate(head, headRot, 122, 46);
+      const pupDist = hasPointerMoved && isFinePointer && dist > 45 ? 1.6 : 0;
+      pup.setAttribute("cx", (150 + Math.cos(pupilAngle) * pupDist).toFixed(2));
+      pup.setAttribute("cy", (38 + Math.sin(pupilAngle) * pupDist).toFixed(2));
 
       // Kedipan mata
       if (t > nextBlink) {
