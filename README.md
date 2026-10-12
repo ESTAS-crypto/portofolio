@@ -1,173 +1,161 @@
-<div align="center">
+# Evan Atharasya · Portofolio
 
-# ✨ Evan Atharasya — Portfolio
-
-### *Crafting Digital Experiences*
-
-[![Live Demo](https://img.shields.io/badge/🔗_Live_Demo-8b5cf6?style=for-the-badge&logoColor=white)](https://portofolio-ashen-iota.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ESTAS-crypto)
-[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://instagram.com/evanatharasya.x)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/evan-atharasya-64b1621b7/)
-
-<br/>
-
-<img src="docs/preview.png" alt="Portfolio Preview" width="100%" style="border-radius: 12px;" />
-
-<br/>
-
-*A modern, interactive developer portfolio built with React & Framer Motion.*
-*Featuring glassmorphism design, smooth animations, and real-time GitHub integration.*
-
-</div>
-
----
-
-## 🚀 Features
-
-| Feature | Description |
-|:---:|---|
-| 🎨 | **Glassmorphism UI** — Premium dark theme with glass-effect cards, gradient accents, and noise overlay |
-| ✨ | **Micro-animations** — Smooth scroll reveals, magnetic buttons, typing effects, and floating orbs powered by Framer Motion |
-| 📱 | **Fully Responsive** — Optimized for desktop, tablet, and mobile with adaptive bottom navigation bar |
-| 🔗 | **Live GitHub Integration** — Projects fetched from GitHub API with smart caching (30-min TTL) to avoid rate limiting |
-| 🌐 | **Social Links** — Direct links to GitHub, Instagram, and LinkedIn with proper SVG brand icons |
-| ⚡ | **Performance** — Intersection Observer-based lazy animations, no unnecessary re-renders |
-| 🛡️ | **Error Resilience** — Graceful fallback UI when GitHub API is rate-limited, with retry functionality |
-| 🧩 | **Modular Architecture** — Centralized constants, shared hooks, and reusable icon components |
-
----
-
-## 🖼️ Sections
-
-<div align="center">
-
-| | Section | Description |
-|:---:|:---|:---|
-| 🏠 | **Hero** | Animated intro with typing effect & floating orbs |
-| 👤 | **About** | Bio, skill bars & GitHub stats in a bento grid |
-| 💼 | **Projects** | Live repo cards fetched from GitHub API |
-| ⚡ | **Skills** | Infinite-scroll tech stack marquee |
-| 📋 | **Experience** | Interactive expandable timeline |
-| ✉️ | **Contact** | Message form & social media cards |
-
-</div>
+Situs portofolio interaktif modern berkinerja tinggi yang dimigrasikan dari file monolitik vanilla HTML/CSS/JS (`Evan Atharasya · Portofolio (1).html`) menjadi arsitektur modular **Next.js 15 (App Router)**, **React 19**, **TypeScript strict**, dan **Tailwind CSS v4** dengan 100% paritas visual dan perilaku animasi 1:1.
 
 ---
 
 ## 🛠️ Tech Stack
 
-<div align="center">
-
-![React](https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
-
-</div>
-
----
-
-## 📁 Project Structure
-
-```
-src/
-├── constants.js          # 📋 All data constants (edit here → updates everywhere)
-├── hooks/
-│   ├── useIsMobile.js    # 📱 Responsive breakpoint hook
-│   └── useGitHub.js      # 🔗 Cached GitHub API utility
-├── components/
-│   ├── Icons.jsx         # 🎨 Shared SVG icon components
-│   ├── Navbar.jsx        # 🧭 Desktop nav + mobile bottom bar
-│   ├── Hero.jsx          # 🏠 Landing section with parallax
-│   ├── About.jsx         # 👤 Bio + skills bento grid
-│   ├── Projects.jsx      # 💼 GitHub repos with cards
-│   ├── Skills.jsx        # ⚡ Infinite marquee tech stack
-│   ├── Experience.jsx    # 📋 Interactive timeline
-│   ├── Contact.jsx       # ✉️ Form + social cards
-│   ├── Footer.jsx        # 📄 Footer with gradient
-│   └── CustomCursor.jsx  # 🖱️ Custom cursor (desktop only)
-├── index.css             # 🎨 Global styles + responsive queries
-├── App.jsx               # 📦 Root component
-└── main.jsx              # 🚀 Entry point
-```
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server & Client Components)
+- **UI Library**: [React 19](https://react.dev/)
+- **Bahasa**: [TypeScript](https://www.typescriptlang.org/) (Strict mode)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + CSS Design Tokens & Native Keyframes di `globals.css`
+- **Animasi & Scroll**:
+  - [GSAP 3](https://gsap.com/) + ScrollTrigger via `@gsap/react` (`useGSAP`)
+  - [Lenis](https://lenis.darkroom.engineering/) terintegrasi ke GSAP Ticker & ScrollTrigger
+- **Typography**: `next/font/google` ([Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) 500/700/800 & [Figtree](https://fonts.google.com/specimen/Figtree) 400/500/600)
+- **Shaders & Audio**:
+  - WebGL Canvas Caustics Shader native (tanpa three.js, resolusi 0.5x, auto pause saat hidden)
+  - Web Audio API synthesizer (brown noise sea swell, wind bandpass, depth lowpass, UI sound pops & whoosh)
+- **Pengujian**: Playwright Smoke Tests & Browser Subagent QA
+- **Package Manager**: [pnpm](https://pnpm.io/)
 
 ---
 
-## ⚡ Quick Start
+## 🌊 Peta Fitur & Interaksi Utama
 
+1. **Hero Sky Dive**:
+   - Section di-pin 160% tinggi viewport dengan scrub timeline GSAP.
+   - 5 awan SVG bergeser horizontal ke arah berlawanan, matahari terbenam membesar, teks copywriting memudar ke atas.
+   - Deteksi **Night Mode** otomatis berdasarkan jam lokal (19:00 - 05:00) secara hydration-safe pada client.
+   - Ombak pasang surut (`.tide`) naik menutup layar transisi ke laut.
+2. **Global Background Depth Tweening**:
+   - Variabel CSS `--c` di-tween sepanjang scroll dokumen dari `rgb(27, 127, 179)` ke `rgb(10, 63, 102)` hingga `rgb(3, 17, 31)`.
+3. **Floating Glass Nav**:
+   - Kapsul kaca dengan efek blur (`backdrop-filter: blur(14px)`).
+   - Fluid highlight pill yang berpindah halus (`back.out(1.6)`) mengikuti menu aktif dan hover pointer.
+   - Logo ikan yang miring dinamis merespons arah kecepatan scroll (`rotation: ±42deg`).
+   - Mobile fullscreen overlay menu dengan transisi circular `clip-path` dari tombol burger.
+4. **Interactive Altitude & Depth Gauge**:
+   - Rail vertikal di sisi kanan menghitung elevasi (+3.200 m di udara &rarr; 0 m permukaan &rarr; -1.000 m zona senja).
+   - Efek riak air saat menembus 0 m, peek tip alert pergantian zona, dan klik rail/titik section untuk melompat.
+5. **Smart Ring Cursor**:
+   - Hanya aktif pada pointer presisi (`pointer: fine`).
+   - Posisi kursor di-lerp halus dengan `gsap.quickTo`.
+   - Menampilkan label kontekstual: "Masuk" (ikan), "Buka" (kartu proyek), "Geser" (laut dalam).
+6. **About Section**:
+   - Teks statement menyala kata demi kata mengikuti scroll scrub.
+   - Counter angka statistik menghitung naik otomatis saat masuk viewport (47 repo, 18 teknologi, 3 proyek utama).
+   - Dua baris marquee keahlian bergerak berlawanan arah.
+7. **Kinetic Marquee**:
+   - Teks outline raksasa bergerak horizontal dengan kecepatan dan arah yang mengikuti kecepatan scroll pengguna.
+8. **Horizontal Work Track**:
+   - Pin vertikal yang menggeser track horizontal kartu proyek pilihan.
+   - Rotasi dan scale masuk kartu via `containerAnimation`, 3D tilt pada hover mouse, dan kemiringan `skewX` dinamis sesuai kecepatan Lenis.
+9. **Deep Sea Parallax & Curious Fish**:
+   - 3 lapisan paralaks dunia bawah laut yang dapat digeser via mouse X maupun touch drag (`touch-action: pan-y`).
+   - Ikan penasaran mendekati kursor saat kursor berjarak < 300px.
+   - Rumput laut bergoyang SVG prosedural, sinar matahari bawah air, dan riak air saat klik.
+10. **Project Portal (Case Study Modal)**:
+    - Buka modal dengan transisi zoom lingkaran dari titik klik + zoom in ke mata ikan pemicu.
+    - Konten studi kasus terstruktur: **Masalah**, **Solusi**, **Manfaat**, teknologi, dan tombol aksi (GitHub / demo privat via mailto).
+    - Window mockup 3D dengan chip teknologi yang mengorbit.
+    - Navigasi antar proyek via tombol atau panah keyboard (`ArrowRight` / `ArrowLeft`), dan tutup via `Escape`.
+11. **Responsive & Aksesibilitas**:
+    - Dukungan penuh `prefers-reduced-motion` (menonaktifkan animasi berlebih, layout stack vertikal di Work).
+    - Skip-to-content link, focus visible outline `var(--sun)`, modal dialog `aria-modal="true"` dengan focus trapping & restoration.
+
+---
+
+## 📁 Struktur Direktori
+
+```plaintext
+├── docs/
+│   ├── INVENTORY.md             # Analisis mendalam & inventarisasi kode awal
+│   └── PORTING_NOTES.md         # Catatan pemetaan arsitektur modular
+├── public/                      # Static assets
+├── src/
+│   ├── app/
+│   │   ├── globals.css          # Design token, keyframes, utilities
+│   │   ├── layout.tsx           # Root layout, Google fonts, metadata
+│   │   ├── page.tsx             # Main page container & section coordinator
+│   │   ├── opengraph-image.tsx  # Dynamic OG image generation
+│   │   ├── robots.ts            # Robots configuration
+│   │   └── sitemap.ts           # Sitemap generator
+│   ├── components/
+│   │   ├── fx/                  # Caustics, Bubbles, Clouds, Birds, Tide, Seaweed
+│   │   ├── layout/              # Nav, MobileMenu, Gauge, Cursor, AudioControl, Toast, SkipLink
+│   │   ├── portal/              # ProjectPortal, OrbitMock
+│   │   └── sections/            # Hero, About, KineticMarquee, Work, Deep, Contact
+│   ├── data/
+│   │   ├── projects.ts          # Data terpisah proyek & studi kasus
+│   │   ├── site.ts              # Data profil, links, deskripsi, zona
+│   │   └── skills.ts            # Data daftar skill marquee
+│   ├── hooks/                   # useLenis, useReducedMotion, useNightMode
+│   ├── lib/
+│   │   ├── audioEngine.ts       # Native Web Audio synthesizer
+│   │   ├── gsap.ts              # Central GSAP & ScrollTrigger registry
+│   │   ├── math.ts              # Interpolasi, clamp, format angka
+│   │   └── shaders.ts           # WebGL caustics shaders
+│   └── types/
+│       └── project.ts           # TypeScript interfaces & types
+├── tests/
+│   └── smoke.spec.ts            # Playwright smoke tests
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+## 🚀 Menjalankan Secara Lokal
+
+### Prasyarat
+- Node.js >= 18 (diuji pada v24)
+- pnpm >= 9 (diuji pada v12)
+
+### 1. Instalasi Dependensi
 ```bash
-# Clone the repository
-git clone https://github.com/ESTAS-crypto/portofolio.git
-
-# Navigate to the project
-cd portofolio
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+pnpm install
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
-
-## 🔧 Configuration
-
-All personal data is centralized in **`src/constants.js`**:
-
-```javascript
-// Change your social links
-export const SOCIAL_LINKS = [
-  { name: 'GitHub',    url: 'https://github.com/ESTAS-crypto', ... },
-  { name: 'Instagram', url: 'https://instagram.com/evanatharasya.x', ... },
-  { name: 'LinkedIn',  url: 'https://linkedin.com/in/...', ... },
-];
-
-// Change your skills, experience, tech stack, etc.
-export const SKILLS = [ ... ];
-export const EXPERIENCES = [ ... ];
-export const TECH_STACK = [ ... ];
-```
-
-| Want to change... | Edit in `constants.js` |
-|---|---|
-| Social media links | `SOCIAL_LINKS` |
-| GitHub username | `GITHUB_USERNAME` |
-| Name & tagline | `PROFILE` |
-| Skills & levels | `SKILLS` |
-| Tech stack marquee | `TECH_STACK` |
-| Experience timeline | `EXPERIENCES` |
-| Nav items | `NAV_ITEMS` |
-
----
-
-## 📦 Build for Production
-
+### 2. Jalankan Server Development
 ```bash
-npm run build
+pnpm run dev
+```
+Buka browser di `http://localhost:3000`.
+
+### 3. Build & Jalankan Mode Produksi
+```bash
+pnpm run build
+pnpm run start
 ```
 
-Output will be in the `dist/` folder, ready for deployment on Vercel, Netlify, or any static hosting.
+### 4. Menjalankan Smoke Test
+```bash
+pnpm run test:smoke
+```
 
 ---
 
-## 🎨 Design Philosophy
+## ☁️ Deploy ke Vercel
 
-- **Dark-first** — Deep navy/black background with vibrant purple accents
-- **Glassmorphism** — Frosted glass cards with subtle borders and blur effects
-- **Motion-driven** — Every interaction has purpose; nothing is static
-- **Mobile-native** — Touch-optimized bottom nav, larger tap targets, reduced animations on mobile
-- **Data-driven** — Projects pull from GitHub API, stats update automatically
+Proyek ini telah dikonfigurasi penuh dan siap dideploy langsung ke [Vercel](https://vercel.com/):
+
+### Metode 1: Melalui Vercel CLI
+```bash
+pnpm dlx vercel
+```
+
+### Metode 2: Melalui Dashboard Vercel (Git Integration)
+1. Push branch `main` ke repository GitHub `https://github.com/ESTAS-crypto/portofolio.git`.
+2. Buka dashboard Vercel & pilih **Import Project**.
+3. Pilih repository `portofolio`.
+4. Framework preset akan terdeteksi otomatis sebagai **Next.js**.
+5. Klik **Deploy**.
 
 ---
 
-<div align="center">
+## 📝 Lisensi & Kredit
 
-### Made with 💜 by Evan Atharasya
-
-*If you like this portfolio, consider giving it a ⭐!*
-
-</div>
+Dibuat dengan dedikasi penuh oleh **Evan Atharasya** ([@ESTAS-crypto](https://github.com/ESTAS-crypto)).
+Dibuat dengan secangkir kopi dan langit yang cerah.

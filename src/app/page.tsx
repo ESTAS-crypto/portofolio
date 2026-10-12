@@ -1,0 +1,147 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { LenisProvider, useLenis } from "@/hooks/useLenis";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useNightMode } from "@/hooks/useNightMode";
+import { siteConfig } from "@/data/site";
+
+import SvgSymbols from "@/components/layout/SvgSymbols";
+import ScrollProgress from "@/components/layout/ScrollProgress";
+import Cursor from "@/components/layout/Cursor";
+import SkipLink from "@/components/layout/SkipLink";
+import Nav from "@/components/layout/Nav";
+import Gauge from "@/components/layout/Gauge";
+import AudioControl from "@/components/layout/AudioControl";
+import Toast from "@/components/layout/Toast";
+import Bubbles from "@/components/fx/Bubbles";
+
+import Hero from "@/components/sections/Hero";
+import About from "@/components/sections/About";
+import KineticMarquee from "@/components/sections/KineticMarquee";
+import Work from "@/components/sections/Work";
+import Deep from "@/components/sections/Deep";
+import Contact from "@/components/sections/Contact";
+import ProjectPortal from "@/components/portal/ProjectPortal";
+
+function PortfolioApp() {
+  const reducedMotion = useReducedMotion();
+  const isNight = useNightMode();
+  const { scrollTo } = useLenis();
+
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [portalTriggerElement, setPortalTriggerElement] = useState<HTMLElement | null>(null);
+
+  // Global background color tween across scroll depth
+  useGSAP(
+    () => {
+      if (reducedMotion) return;
+
+      const root = document.documentElement;
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: document.body,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true,
+        },
+      });
+
+      tl.to(root, { "--c": "rgb(10,63,102)", ease: "none" }).to(root, {
+        "--c": "rgb(3,17,31)",
+        ease: "none",
+      });
+
+      document.fonts?.ready.then(() => {
+        ScrollTrigger.refresh();
+      });
+    },
+    { dependencies: [reducedMotion] }
+  );
+
+  // Centralized section navigation
+  const handleNavigate = useCallback(
+    (id: string) => {
+      if (id === "hero") {
+        scrollTo(0, { duration: 1.6 });
+        return;
+      }
+
+      const targetEl = document.getElementById(id);
+      if (!targetEl) return;
+
+      // Account for GSAP pin-spacer if applicable
+      const parent =
+        targetEl.parentElement && targetEl.parentElement.classList.contains("pin-spacer")
+          ? targetEl.parentElement
+          : targetEl;
+
+      const targetY = parent.getBoundingClientRect().top + window.scrollY;
+      const distance = Math.abs(targetY - window.scrollY);
+      const duration = Math.min(2.8, Math.max(1.2, distance / 2800));
+
+      scrollTo(targetY, {
+        duration,
+        easing: (t) => 1 - Math.pow(1 - t, 4),
+      });
+    },
+    [scrollTo]
+  );
+
+  const handleOpenProject = useCallback((index: number, triggerEl: HTMLElement) => {
+    setActiveProjectIndex(index);
+    setPortalTriggerElement(triggerEl);
+    setPortalOpen(true);
+  }, []);
+
+  const handleCloseProject = useCallback(() => {
+    setPortalOpen(false);
+  }, []);
+
+  return (
+    <>
+      <SvgSymbols />
+      <ScrollProgress reducedMotion={reducedMotion} />
+      <Cursor reducedMotion={reducedMotion} />
+      <SkipLink />
+      <Nav onNavigate={handleNavigate} reducedMotion={reducedMotion} />
+      <Gauge onNavigate={handleNavigate} reducedMotion={reducedMotion} />
+      <AudioControl reducedMotion={reducedMotion} />
+      <Toast />
+      <Bubbles reducedMotion={reducedMotion} />
+
+      <main>
+        <Hero isNight={isNight} reducedMotion={reducedMotion} />
+        <About reducedMotion={reducedMotion} />
+        <KineticMarquee reducedMotion={reducedMotion} />
+        <Work onOpenProject={handleOpenProject} reducedMotion={reducedMotion} />
+        <Deep onOpenProject={handleOpenProject} reducedMotion={reducedMotion} />
+        <Contact reducedMotion={reducedMotion} />
+      </main>
+
+      <ProjectPortal
+        isOpen={portalOpen}
+        activeProjectIndex={activeProjectIndex}
+        triggerElement={portalTriggerElement}
+        onClose={handleCloseProject}
+        onNavigateProject={setActiveProjectIndex}
+        reducedMotion={reducedMotion}
+      />
+
+      <footer>{siteConfig.footerText}</footer>
+    </>
+  );
+}
+
+export default function Home() {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <LenisProvider reducedMotion={reducedMotion}>
+      <PortfolioApp />
+    </LenisProvider>
+  );
+}
