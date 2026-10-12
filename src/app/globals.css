@@ -2534,6 +2534,65 @@ footer {
   }
 }
 
+/* Beast (Whale & Megalodon) and Alert overlay styles */
+.beast {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 19;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.beast .wi {
+  display: block;
+  width: 100%;
+  animation: wbob 7s ease-in-out infinite alternate;
+}
+
+.beast .wd {
+  display: block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.calm .beast {
+  display: none !important;
+}
+
+@keyframes wbob {
+  to {
+    transform: translateY(18px) rotate(-1.5deg);
+  }
+}
+
+.alert {
+  position: fixed;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 40, 40, 0.28) 100%);
+}
+
+.ring {
+  position: fixed;
+  z-index: 21;
+  width: 80px;
+  height: 80px;
+  margin: -40px 0 0 -40px;
+  border: 2px solid rgba(160, 220, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.calm .alert,
+.calm .ring {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

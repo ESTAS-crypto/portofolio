@@ -28,19 +28,19 @@ export default function Contact({ reducedMotion = false }: ContactProps) {
         duration: 1.1,
         ease: "expo.out",
         scrollTrigger: {
-          trigger: "#contact",
+          trigger: contactRef.current,
           start: "top 60%",
         },
       });
 
-      gsap.from("#contact p, #contact .btn, .contact-social-links", {
+      gsap.from("p, .btn, .contact-social-links", {
         y: 30,
         opacity: 0,
         stagger: 0.15,
         duration: 1,
         delay: 0.4,
         scrollTrigger: {
-          trigger: "#contact",
+          trigger: contactRef.current,
           start: "top 60%",
         },
       });
@@ -93,8 +93,9 @@ export default function Contact({ reducedMotion = false }: ContactProps) {
       <TreasureChest reducedMotion={reducedMotion} />
       <h2 id="ct">
         {titleWords.map((word, i) => (
-          <span key={i} className="w">
-            {word}{" "}
+          <span key={i}>
+            <span className="w">{word}</span>
+            {i < titleWords.length - 1 ? " " : ""}
           </span>
         ))}
       </h2>

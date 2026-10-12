@@ -79,8 +79,8 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
         .to(
           heroRef.current,
           {
-            "--h1": isNight ? "rgb(4,10,28)" : "rgb(31,79,143)",
-            "--h2": isNight ? "rgb(24,44,96)" : "rgb(255,200,150)",
+            "--h1": () => (heroRef.current?.getAttribute("data-tod") === "night" ? "rgb(4,10,28)" : "rgb(31,79,143)"),
+            "--h2": () => (heroRef.current?.getAttribute("data-tod") === "night" ? "rgb(24,44,96)" : "rgb(255,200,150)"),
           },
           0
         )
@@ -110,7 +110,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
           0
         );
     },
-    { scope: heroRef, dependencies: [isNight, reducedMotion] }
+    { scope: heroRef, dependencies: [reducedMotion], revertOnUpdate: true }
   );
 
   return (

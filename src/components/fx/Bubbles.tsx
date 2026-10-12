@@ -70,17 +70,20 @@ export default function Bubbles({ reducedMotion = false }: { reducedMotion?: boo
     () => {
       if (reducedMotion || !containerRef.current) return;
 
+      const aboutEl = document.getElementById("about");
+      if (!aboutEl) return;
+
       gsap.to(containerRef.current, {
         opacity: 1,
         scrollTrigger: {
-          trigger: "#about",
+          trigger: aboutEl,
           start: "top bottom",
           end: "top 30%",
           scrub: true,
         },
       });
     },
-    { scope: containerRef, dependencies: [reducedMotion] }
+    { dependencies: [reducedMotion] }
   );
 
   return (

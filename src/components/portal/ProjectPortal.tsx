@@ -240,7 +240,7 @@ export default function ProjectPortal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="pt"
-      hidden
+      hidden={!isOpen}
       style={
         {
           "--pbg": `hsl(${currentProject.hue} 55% 13%)`,

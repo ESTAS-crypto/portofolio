@@ -169,3 +169,16 @@ Seluruh 7 skenario pengujian di `tests/smoke.spec.ts` berjalan dan lulus 100%:
 5. `Verifikasi Peti Harta Karun di Kontak` &mdash; PASSED
 6. `Verifikasi Tombol Naik ke Permukaan (#up)` &mdash; PASSED
 7. `Verifikasi Pintasan Keyboard (? untuk bantuan, M untuk bisukan audio)` &mdash; PASSED
+
+### 4.3 Perbaikan Regresi Hero Pinning & Build Next.js 15
+1. **Perbaikan Hero Pinning Ganda (`transform: translate(0px, 1152px)` pada scroll 0)**:
+   - **Penyebab**: `useNightMode` merubah state `isNight` dari `false` menjadi `true` setelah mount di waktu malam (setelah pukul 19:00). Karena `isNight` didaftarkan sebagai dependencies `useGSAP` di [Hero.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/components/sections/Hero.tsx), ScrollTrigger membuat pin ganda pada spacer (`padding: 2304px` bukannya `1152px`), menyebabkan elemen `#hero` terdorong keluar layar sejauh 1152px pada scroll 0.
+   - **Solusi**: Mengganti dependencies `useGSAP` menjadi `[reducedMotion]` dengan `revertOnUpdate: true`, serta menggunakan fungsi dinamis untuk `--h1` dan `--h2` berdasarkan attribute `data-tod`.
+2. **Perbaikan Spasi Kata Teks Statement & Kontak**:
+   - Memastikan spasi `" "` berada di antara elemen `inline-block` `<span className="w">` agar kata tidak menyatu saat dirender browser.
+3. **Perbaikan Attribute `hidden` pada Project Portal**:
+   - Mengubah atribut statis `hidden` menjadi `hidden={!isOpen}` pada [ProjectPortal.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/components/portal/ProjectPortal.tsx) agar modal dapat terbuka secara konsisten pada interaksi klik.
+4. **Perbaikan CSS Siluet Makhluk Laut (`.beast`, `.alert`, `.ring`)**:
+   - Menambahkan deklarasi CSS `.beast`, `.alert`, `.ring`, dan `@keyframes wbob` dengan `pointer-events: none` ke [globals.css](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/app/globals.css) agar tidak mengganggu klik elemen halaman.
+5. **Perbaikan Build Next.js 15 (`Invariant: no direct app page entry found for /_not-found`)**:
+   - Menambahkan [not-found.tsx](file:///c:/Users/MyBook%20Hype%20AMD/OneDrive/Documents/Website%20Portofolio/src/app/not-found.tsx) untuk memenuhi invariant Next.js 15 App Router sehingga `pnpm build` sukses 100%.

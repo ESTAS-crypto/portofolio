@@ -99,8 +99,9 @@ export default function About({ reducedMotion = false }: AboutProps) {
     <section id="about" ref={aboutRef}>
       <p className="statement" id="st">
         {words.map((w, i) => (
-          <span key={i} className="w">
-            {w}{" "}
+          <span key={i}>
+            <span className="w">{w}</span>
+            {i < words.length - 1 ? " " : ""}
           </span>
         ))}
       </p>
