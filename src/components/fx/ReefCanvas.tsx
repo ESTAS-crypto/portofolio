@@ -20,6 +20,7 @@ interface Fish {
   p: number;
   b: number; // burst
   e: number; // eating golden glow
+  school: number; // 0, 1, 2 = 3 sub-school terpisah; -1 = solo wanderer
 }
 
 interface Jelly {
@@ -71,10 +72,10 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     let H = window.innerHeight;
 
     const getFishCount = (w: number) => {
-      if (w < 640) return 22; // Mobile: dinaikkan dari 12 ke 22
-      if (w < 1024) return 38; // Tablet: dinaikkan dari 18 ke 38
-      if (w < 1440) return 56; // Laptop: dinaikkan dari 26 ke 56
-      return 68; // Desktop lebar
+      if (w < 640) return 32; // Mobile: dinaikkan ke 32 & disebar agar tidak menggerombol di satu titik
+      if (w < 1024) return 48; // Tablet
+      if (w < 1440) return 68; // Laptop: dinaikkan ke 68
+      return 82; // Desktop lebar: 82
     };
 
     const NJ = W < 640 ? 4 : W < 1100 ? 5 : 7;
@@ -83,6 +84,22 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     const Jl: Jelly[] = [];
     const P: Pellet[] = [];
     const S: Spark[] = [];
+
+    const createFish = (index: number): Fish => {
+      // 3 kelompok kawanan independen + penjelajah mandiri (solo) agar ikan menyebar ke seluruh layar
+      const school = index % 4 === 3 ? -1 : index % 3;
+      return {
+        x: rnd() * W,
+        y: rnd() * H,
+        vx: (rnd() * 2 - 1) * (0.8 + rnd() * 0.5),
+        vy: (rnd() * 2 - 1) * (0.8 + rnd() * 0.5),
+        s: 0.55 + rnd() * 0.45,
+        p: rnd() * 6.28,
+        b: 0,
+        e: 0,
+        school,
+      };
+    };
 
     const updateHomes = () => {
       Jl.forEach((j, i) => {
@@ -93,16 +110,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     const syncFishCount = () => {
       const targetNF = getFishCount(W);
       while (F.length < targetNF) {
-        F.push({
-          x: rnd() * W,
-          y: rnd() * H,
-          vx: rnd() * 2 - 1,
-          vy: rnd() * 2 - 1,
-          s: 0.55 + rnd() * 0.45,
-          p: rnd() * 6.28,
-          b: 0,
-          e: 0,
-        });
+        F.push(createFish(F.length));
       }
       if (F.length > targetNF) {
         F.length = targetNF;
@@ -121,16 +129,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
 
     const initialNF = getFishCount(W);
     for (let i = 0; i < initialNF; i++) {
-      F.push({
-        x: rnd() * W,
-        y: rnd() * H,
-        vx: rnd() * 2 - 1,
-        vy: rnd() * 2 - 1,
-        s: 0.55 + rnd() * 0.45,
-        p: rnd() * 6.28,
-        b: 0,
-        e: 0,
-      });
+      F.push(createFish(i));
     }
 
     for (let i = 0; i < NJ; i++) {
@@ -163,15 +162,29 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     let lastTime = 0;
     let grab: { j: Jelly; ox: number; oy: number } | null = null;
     let lastSparkTime = 0;
+    let touchResetTimer: NodeJS.Timeout | null = null;
 
     const getRadius = (j: Jelly) => 34 * j.z;
 
     const onPointerMove = (e: PointerEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (e.pointerType === "touch") {
+        if (touchResetTimer) clearTimeout(touchResetTimer);
+        touchResetTimer = setTimeout(() => {
+          mouseX = -999;
+          mouseY = -999;
+        }, 1200);
+      }
+    };
+
+    const onPointerLeave = () => {
+      mouseX = -999;
+      mouseY = -999;
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onPointerLeave);
 
     const emitSparks = (x: number, y: number, h: number, count: number, speed: number) => {
       for (let i = 0; i < count && S.length < 260; i++) {
@@ -240,10 +253,17 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       }
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (e?: PointerEvent) => {
       if (grab) {
         grab = null;
         document.body.style.userSelect = "";
+      }
+      if (e?.pointerType === "touch") {
+        if (touchResetTimer) clearTimeout(touchResetTimer);
+        touchResetTimer = setTimeout(() => {
+          mouseX = -999;
+          mouseY = -999;
+        }, 800);
       }
     };
 
@@ -322,7 +342,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       const depth = clamp(-v / 1000, 0, 1);
       const threat = oceanStore.getThreat();
 
-      // 2. Simulasi Ikan (Boids + Feeding)
+      // 2. Simulasi Ikan (Boids + Sub-schools + Natural Wander + Feeding)
       for (const a of F) {
         let ax = 0;
         let ay = 0;
@@ -339,23 +359,42 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
           const dx = b.x - a.x;
           const dd = b.y - a.y;
           const d2 = dx * dx + dd * dd;
-          if (d2 < 5600) {
+
+          // Pemisahan (Separation) kuat dan merata:
+          // Mencegah ikan saling bertumpuk (overlap) jadi satu gumpalan bola.
+          // Jarak ~48px (d2 < 2300) menjamin ikan tetap berjarak rapi dan mengisi ruang.
+          if (d2 < 2300) {
+            const dist = Math.sqrt(d2) || 1;
+            const force = (1 - dist / 48) * 1.6;
+            sx -= (dx / dist) * force;
+            sy2 -= (dd / dist) * force;
+          }
+
+          // Kohesi & Penyelarasan (Cohesion & Alignment):
+          // Hanya berlaku untuk kawanan yang sama (a.school === b.school) dan bukan solo (-1).
+          // Ini memecah ikan menjadi beberapa sub-school indah di penjuru layar!
+          if (a.school !== -1 && a.school === b.school && d2 < 6000) {
             count++;
             cx += b.x;
             cy += b.y;
             vxs += b.vx;
             vys += b.vy;
-            if (d2 < 500) {
-              sx -= dx;
-              sy2 -= dd;
-            }
           }
         }
 
         if (count > 0) {
-          ax += (cx / count - a.x) * 0.0016 + (vxs / count - a.vx) * 0.05 + sx * 0.012;
-          ay += (cy / count - a.y) * 0.0016 + (vys / count - a.vy) * 0.05 + sy2 * 0.012;
+          ax += (cx / count - a.x) * 0.0009 + (vxs / count - a.vx) * 0.035;
+          ay += (cy / count - a.y) * 0.0009 + (vys / count - a.vy) * 0.035;
         }
+
+        // Terapkan gaya pemisahan
+        ax += sx * 0.026;
+        ay += sy2 * 0.026;
+
+        // Gaya gerak berenang alami (natural wander & vertical sway):
+        // Membuat ikan menyebar di kedalaman dan tidak terkumpul di satu garis
+        ax += Math.cos(t * 0.85 + a.p) * 0.016;
+        ay += Math.sin(t * 1.15 + a.p * 1.4) * 0.015;
 
         // Mengejar makanan jika ada
         let bestPellet: Pellet | null = null;
@@ -385,18 +424,19 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
         const mdy = mouseY - a.y;
         const md = Math.hypot(mdx, mdy) || 1;
 
-        if (!bestPellet) {
-          if (cursorSpeed > 16 && md < 170) {
+        if (!bestPellet && mouseX > -500) {
+          const maxAttractDist = W < 640 ? 170 : 360;
+          if (cursorSpeed > 16 && md < (W < 640 ? 110 : 160)) {
             ax -= (mdx / md) * 0.5;
             ay -= (mdy / md) * 0.5;
             a.b = Math.max(a.b, 0.5);
-          } else if (md < 380) {
-            const k = md < 130 ? -0.5 : 0.9;
-            ax += (mdx / md) * k * 0.03;
-            ay += (mdy / md) * k * 0.03;
-            if (md < 220) {
-              ax += (-mdy / md) * 0.035;
-              ay += (mdx / md) * 0.035;
+          } else if (md < maxAttractDist) {
+            const k = md < 110 ? -0.5 : 0.8;
+            ax += (mdx / md) * k * 0.026;
+            ay += (mdy / md) * k * 0.026;
+            if (md < 180) {
+              ax += (-mdy / md) * 0.03;
+              ay += (mdx / md) * 0.03;
             }
           }
         }
@@ -418,35 +458,37 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
         }
 
         const speed = Math.hypot(a.vx, a.vy) || 1;
-        const limit = (bestPellet ? 3.4 : 2) + a.b * 6;
+        const limit = (bestPellet ? 3.4 : 2.2) + a.b * 6;
         a.b *= 0.96;
         a.e *= 0.95;
 
         if (speed > limit) {
           a.vx *= limit / speed;
           a.vy *= limit / speed;
-        } else if (speed < 0.7) {
-          a.vx *= 0.7 / speed;
-          a.vy *= 0.7 / speed;
+        } else if (speed < 0.72) {
+          a.vx *= 0.72 / speed;
+          a.vy *= 0.72 / speed;
         }
 
         a.x += a.vx;
         a.y += a.vy;
 
-        // Wrap tepi layar
-        if (a.x < -20) a.x = W + 20;
-        if (a.x > W + 20) a.x = -20;
-        if (a.y < -20) a.y = H + 20;
-        if (a.y > H + 20) a.y = -20;
+        // Wrap tepi layar dengan padding cukup
+        if (a.x < -24) a.x = W + 24;
+        if (a.x > W + 24) a.x = -24;
+        if (a.y < -24) a.y = H + 24;
+        if (a.y > H + 24) a.y = -24;
 
         const angle = Math.atan2(a.vy, a.vx);
         const waggle = Math.sin(t * 9 + a.p) * 2.2;
+        const hueBase =
+          a.school === 0 ? 180 : a.school === 1 ? 198 : a.school === 2 ? 168 : 212;
 
         ctx.save();
         ctx.translate(a.x, a.y);
         ctx.rotate(angle);
         ctx.scale(a.s, a.s);
-        ctx.fillStyle = `hsla(${185 + depth * 70}, 88%, ${72 - depth * 22 + a.e * 18}%, ${Math.min(1, 0.72 * fishAlpha + a.e * 0.45)})`;
+        ctx.fillStyle = `hsla(${hueBase + depth * 55}, 88%, ${72 - depth * 20 + a.e * 18}%, ${Math.min(1, 0.76 * fishAlpha + a.e * 0.45)})`;
 
         // Badan ikan
         ctx.beginPath();
@@ -580,9 +622,11 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
+      if (touchResetTimer) clearTimeout(touchResetTimer);
       gsap.ticker.remove(onTick);
     };
   }, [reducedMotion]);

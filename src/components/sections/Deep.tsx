@@ -33,7 +33,7 @@ export default function Deep({ onOpenProject, reducedMotion = false }: DeepProps
   // Deterministic helper for SSR-safe layout coordinates
   const schoolFish = useMemo<SchoolFishItem[]>(() => {
     const items: SchoolFishItem[] = [];
-    for (let i = 0; i < 26; i++) {
+    for (let i = 0; i < 32; i++) {
       items.push({
         left: ((i * 13 + 5) % 92),
         top: 12 + ((i * 11 + 7) % 65),
