@@ -263,6 +263,9 @@ export default function Deep({ onOpenProject, reducedMotion = false }: DeepProps
                 width: `${pos.width}px`,
                 color: pos.color,
               }}
+              onPointerEnter={() => {
+                audioEngine.pop(300);
+              }}
               onClick={(e) => {
                 audioEngine.sweepCard();
                 onOpenProject(i, e.currentTarget);

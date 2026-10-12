@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import { oceanStore } from "@/lib/oceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -432,7 +433,19 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
         />
       </div>
 
-      <svg className="bd-pet" id="bdPet" ref={petRef} viewBox="0 0 120 60" aria-hidden="true">
+      <svg
+        className="bd-pet"
+        id="bdPet"
+        ref={petRef}
+        viewBox="0 0 120 60"
+        aria-hidden="true"
+        style={{ cursor: "pointer", pointerEvents: "auto" }}
+        onPointerEnter={() => audioEngine.pop(340)}
+        onClick={() => {
+          audioEngine.pop(420);
+          audioEngine.whoosh(0.6);
+        }}
+      >
         <use href="#fish" />
       </svg>
     </>

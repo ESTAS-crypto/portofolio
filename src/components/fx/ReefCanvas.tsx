@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import { oceanStore } from "@/lib/oceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const rnd = Math.random;
@@ -199,6 +200,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       // Klik air untuk melempar 4 butir makanan ikan (hanya saat berada di bawah laut)
       const currentV = oceanStore.getDepth();
       if (fishAlpha > 0.2 && currentV < 0 && !oceanStore.isCalm()) {
+        audioEngine.pop(460 + rnd() * 80, 0.4);
         for (let i = 0; i < 4; i++) {
           P.push({
             x: px + (rnd() - 0.5) * 26,

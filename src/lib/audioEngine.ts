@@ -231,13 +231,87 @@ export class AudioEngine {
     this.sweep(300, 1800, 0.8, 0.4);
   }
 
+  public ensureContext(): AudioContext | null {
+    if (!this.ctx) {
+      this.buildGraph();
+    }
+    return this.ctx;
+  }
+
+  /**
+   * Sound effect gelembung 'pop / bloop' (sine wave exponential ramp up).
+   * Suara khas dan lucu saat mengarahkan kursor / mau klik ikan (pop 300Hz)
+   * atau klik elemen interaktif dari referensi portofolio asli.
+   */
+  public pop(freq = 300, gainMultiplier = 1) {
+    if (typeof document !== "undefined" && document.documentElement.classList.contains("calm")) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 2.2, t + 0.08);
+
+    const peakGain = 0.3 * this.volume * gainMultiplier;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peakGain), t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+
+    osc.connect(g);
+    g.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  }
+
+  /**
+   * Sound effect whoosh air saat klik ikan atau kartu proyek.
+   */
+  public whoosh(gainMultiplier = 1) {
+    if (typeof document !== "undefined" && document.documentElement.classList.contains("calm")) return;
+    this.ensureContext();
+    if (!this.ctx || !this.pinkBuffer) return;
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const t = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    const bp = this.ctx.createBiquadFilter();
+    const g = this.ctx.createGain();
+
+    src.buffer = this.pinkBuffer;
+    bp.type = "bandpass";
+    bp.Q.value = 1.2;
+    bp.frequency.setValueAtTime(250, t);
+    bp.frequency.exponentialRampToValueAtTime(2400, t + 0.7);
+
+    const peakGain = 0.45 * this.volume * gainMultiplier;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peakGain), t + 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.ctx.destination);
+
+    src.start(t);
+    src.stop(t + 1);
+  }
+
   /**
    * Efek sapuan saat membuka kartu proyek atau saat ikan diklik.
    * Tetap dipertahankan sesuai instruksi pengguna.
    */
   public sweepCard() {
-    if (!this.isPlaying || !this.ctx) return;
-    this.sweep(320, 1500, 0.7, 0.28);
+    this.whoosh();
+    this.pop(350);
   }
 
   /**
