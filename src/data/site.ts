@@ -11,7 +11,7 @@ export const siteConfig = {
   contactHeading: "Ayo bikin sesuatu bareng.",
   contactDescription:
     "Punya proyek, magang, atau ide kolaborasi? Kirim pesan, saya balas secepatnya.",
-  email: "evanatharasya@gmail.com",
+  email: "eatharasya@gmail.com",
   kineticMarqueeText: "Membangun web, bot, dan alat AI — ",
   footerText: "Dibuat dengan secangkir kopi dan langit yang cerah. Tekan ? untuk pintasan keyboard.",
 };

@@ -282,7 +282,7 @@ pnpm dlx vercel
 
 - 🌐 **GitHub**: [@ESTAS-crypto](https://github.com/ESTAS-crypto)
 - 💼 **LinkedIn**: [Evan Atharasya](https://linkedin.com)
-- 📧 **Email**: [evanatharasya@gmail.com](mailto:evanatharasya@gmail.com)
+- 📧 **Email**: [eatharasya@gmail.com](mailto:eatharasya@gmail.com)
 
 ---
 
