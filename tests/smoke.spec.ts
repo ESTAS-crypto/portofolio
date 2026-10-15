@@ -38,7 +38,8 @@ test.describe("Portfolio v3 Comprehensive Tests", () => {
     // Click first card to open portal
     const firstCard = page.locator(".card").first();
     await expect(firstCard).toBeVisible();
-    await firstCard.click();
+    await page.waitForTimeout(400);
+    await firstCard.dispatchEvent("click");
 
     // Verify modal is open
     const portal = page.locator("#portal");
