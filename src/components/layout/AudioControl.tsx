@@ -9,6 +9,23 @@ export default function AudioControl({ reducedMotion = false }: { reducedMotion?
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(60);
   const [isCalm, toggleCalm] = useCalm();
+  const [mixerOpen, setMixerOpen] = useState(false);
+  const [mix, setMix] = useState({ amb: 100, mus: 100, sfx: 100 });
+
+  // Load saved mixer values
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("audioMix");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setMix({
+          amb: Math.round((parsed.amb ?? 1) * 100),
+          mus: Math.round((parsed.mus ?? 1) * 100),
+          sfx: Math.round((parsed.sfx ?? 1) * 100),
+        });
+      }
+    } catch (_) { /* ignore */ }
+  }, []);
 
   // Matikan audio otomatis jika Mode Tenang diaktifkan
   useEffect(() => {
@@ -55,8 +72,86 @@ export default function AudioControl({ reducedMotion = false }: { reducedMotion?
     audioEngine.setVolume(val / 100);
   };
 
+  const handleMixChange = useCallback(
+    (key: "amb" | "mus" | "sfx", value: number) => {
+      setMix((prev) => {
+        const next = { ...prev, [key]: value };
+        try {
+          localStorage.setItem(
+            "audioMix",
+            JSON.stringify({ amb: next.amb / 100, mus: next.mus / 100, sfx: next.sfx / 100 })
+          );
+        } catch (_) { /* ignore */ }
+        // Apply to audio engine if it exposes bus controls
+        const eng = audioEngine as unknown as Record<string, unknown>;
+        if (typeof eng.setMix === "function") {
+          (eng.setMix as (k: string, v: number) => void)(key, value / 100);
+        }
+        return next;
+      });
+    },
+    []
+  );
+
   return (
     <div className="aud" id="aud">
+      {/* Mixer popup */}
+      {mixerOpen && (
+        <div className="mix-pop" id="mixPop">
+          <label>
+            Suasana
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={mix.amb}
+              onChange={(e) => handleMixChange("amb", Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Musik
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={mix.mus}
+              onChange={(e) => handleMixChange("mus", Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Efek
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={mix.sfx}
+              onChange={(e) => handleMixChange("sfx", Number(e.target.value))}
+            />
+          </label>
+        </div>
+      )}
+
+      <button
+        id="mixBtn"
+        type="button"
+        aria-label="Mixer suara"
+        aria-expanded={mixerOpen}
+        onClick={() => setMixerOpen((v) => !v)}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h10M18 7h2M4 17h2M10 17h10" />
+          <circle cx="16" cy="7" r="2" />
+          <circle cx="8" cy="17" r="2" />
+        </svg>
+      </button>
+
       <button
         id="calmBtn"
         type="button"

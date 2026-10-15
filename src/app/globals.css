@@ -262,6 +262,19 @@ html[data-tod="day"] #hero {
   top: 78%;
   fill: var(--c);
   color: #fff;
+  --sh: clamp(96px, 12vw, 170px);
+}
+
+@media (max-width: 760px) {
+  .tide {
+    --sh: clamp(92px, 30vw, 132px);
+  }
+}
+
+@media (max-height: 520px) {
+  .tide {
+    --sh: clamp(64px, 18vh, 110px);
+  }
 }
 
 .tide .wv {
@@ -1445,6 +1458,100 @@ footer {
   width: 84px;
   opacity: 1;
   margin: 0 12px 0 6px;
+}
+
+/* F9: Mixer Button & Popup */
+#mixBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#mixBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#mixBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+#mixBtn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mix-pop {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(10, 42, 74, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  min-width: 160px;
+  animation: mixIn 0.25s ease-out;
+}
+
+@keyframes mixIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.mix-pop label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font: 500 0.8rem var(--body);
+  white-space: nowrap;
+}
+
+.mix-pop input[type="range"] {
+  width: 90px;
+  accent-color: #ffd9a0;
+  cursor: pointer;
+}
+
+#calmBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#calmBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#calmBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+#calmBtn[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffd9a0;
 }
 
 /* Kinetic Marquee */
@@ -3204,5 +3311,231 @@ html[data-tod="night"] #hero::before,
   width: 100%;
   accent-color: #ffd9a0;
   margin: 0;
+}
+
+/* ==========================================================================
+   SYNC V4 — F11: Kapal Nelayan (Ship), Joran Lentur, Penyelam, Kilau & Cipratan
+   ========================================================================== */
+.sp {
+  position: absolute;
+  right: 7%;
+  top: 0;
+  width: calc(var(--sh) * 1.9);
+  height: var(--sh);
+  margin-top: calc(var(--sh) * -0.88);
+  transform-origin: 50% 88%;
+  will-change: transform;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@media (max-width: 760px) {
+  .sp {
+    right: 12%;
+  }
+}
+
+.tide .sp svg,
+.tide .dvw svg {
+  position: static;
+  display: block;
+  width: 100%;
+  height: 100%;
+  bottom: auto;
+  animation: none;
+  overflow: visible;
+}
+
+.tide svg.cf {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 30px;
+  height: auto;
+  color: #ffd9a0;
+  animation: none;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.sp svg.hl {
+  filter: drop-shadow(0 0 2px rgba(180, 210, 255, calc(var(--stars, 0) * 0.7)));
+}
+
+.sp .lamp {
+  opacity: var(--stars, 0);
+  transition: opacity 0.3s;
+}
+
+.sp .win {
+  opacity: calc(0.35 + var(--stars, 0) * 0.65);
+}
+
+.sp .rod {
+  transform-box: view-box;
+  animation: rods 4s ease-in-out infinite alternate;
+}
+
+@keyframes rods {
+  to {
+    transform: rotate(1.8deg);
+  }
+}
+
+.sp .bob {
+  animation: bobb 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes bobb {
+  to {
+    transform: translateY(2px);
+  }
+}
+
+.dvw {
+  position: absolute;
+  left: 5%;
+  top: calc(var(--sh) * 0.1976);
+  width: calc(var(--sh) * 0.22);
+  height: calc(var(--sh) * 0.366);
+  pointer-events: none;
+}
+
+.dvw.fly {
+  left: 0;
+  top: 0;
+  position: absolute;
+  z-index: 7;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.sbtn {
+  position: absolute;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 6px;
+}
+
+.sbtn:focus-visible {
+  outline: 3px solid #ffd9a0;
+}
+
+.foam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--sh) * 1.6);
+  height: 12px;
+  margin: -6px 0 0 calc(var(--sh) * -0.8);
+  border-radius: 50%;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.foam i {
+  position: absolute;
+  inset: -2px -8px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  animation: foamp 2.8s ease-out infinite;
+}
+
+@keyframes foamp {
+  from {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+}
+
+.tide svg.ln {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 100%;
+  height: 70vh;
+  animation: none;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.tide .ptc {
+  fill: var(--c);
+}
+
+.tide .drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  pointer-events: none;
+}
+
+.tide .erg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 11px;
+  margin: -5px 0 0 -22px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.tide .col {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 64px;
+  margin: -64px 0 0 -7px;
+  background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  border-radius: 50% 50% 0 0;
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.tide canvas.glt {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.tide canvas.spl {
+  position: absolute;
+  left: 0;
+  pointer-events: none;
+  z-index: 8;
+}
+
+/* Calm mode hides ship and water FX */
+.calm .sp,
+.calm .dvw,
+.calm .foam,
+.calm .ln,
+.calm .glt,
+.calm .spl {
+  display: none !important;
+}
+
+/* ==========================================================================
+   SYNC V4 — F5: Calm Mode Toast Enhancement
+   ========================================================================== */
+.calm .toast-calm {
+  display: block;
 }
 

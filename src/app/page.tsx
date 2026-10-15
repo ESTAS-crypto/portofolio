@@ -24,6 +24,7 @@ import Buddy from "@/components/fx/Buddy";
 import ReefCanvas from "@/components/fx/ReefCanvas";
 import Creatures from "@/components/fx/Creatures";
 import LightingOverlays from "@/components/fx/LightingOverlays";
+import SmartFavicon from "@/components/fx/SmartFavicon";
 
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
@@ -167,6 +168,7 @@ function PortfolioApp() {
       <ReefCanvas reducedMotion={reducedMotion} />
       <Creatures reducedMotion={reducedMotion} />
       <LightingOverlays reducedMotion={reducedMotion} />
+      <SmartFavicon />
 
       <main>
         <Hero isNight={isNight} reducedMotion={reducedMotion} />

@@ -127,7 +127,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
       </div>
 
       <div className="hint">Gulir untuk menyelam</div>
-      <Tide />
+      <Tide reducedMotion={reducedMotion} />
       <RippleCanvas reducedMotion={reducedMotion} />
       <TimePanel reducedMotion={reducedMotion} />
     </header>

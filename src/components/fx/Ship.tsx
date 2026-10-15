@@ -1057,8 +1057,8 @@ export default function Ship({ reducedMotion = false }: ShipProps) {
           <path d="M75 10l13 4-13 4z" />
         </g>
         <g clipPath="url(#hullMask)">
-          <path d="M12 67H182" stroke="#ffd9a0" strokeOpacity=".3" strokeWidth="1.4" />
-          <path d="M18 80Q100 85 176 80" stroke="#ff9f43" strokeOpacity=".6" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <path d="M12 66H182" stroke="#ffd9a0" strokeOpacity=".45" strokeWidth="1.3" strokeLinecap="round" />
+          <path d="M15 73Q100 75 181 73" stroke="#ff9f43" strokeOpacity=".85" strokeWidth="2" fill="none" strokeLinecap="round" />
         </g>
         <circle cx="60" cy="52" r="5" fill="none" stroke="#ff9f43" strokeWidth="2" />
         <rect className="win" x="66" y="43" width="8" height="8" rx="1.5" fill="#ffd9a0" />
