@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://evan-atharasya.vercel.app/sitemap.xml",
+    sitemap: "https://estas.my.id/sitemap.xml",
   };
 }

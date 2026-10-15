@@ -21,13 +21,13 @@ export const metadata: Metadata = {
   title: siteConfig.title,
   description: siteConfig.description,
   authors: [{ name: siteConfig.name }],
-  metadataBase: new URL("https://evan-atharasya.vercel.app"),
+  metadataBase: new URL("https://estas.my.id"),
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.description,
     type: "website",
     locale: "id_ID",
-    url: "https://evan-atharasya.vercel.app",
+    url: "https://estas.my.id",
     siteName: siteConfig.name,
   },
   twitter: {
