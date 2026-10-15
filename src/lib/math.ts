@@ -9,3 +9,8 @@ export function lerp(start: number, end: number, t: number): number {
 export function formatNumberId(num: number): string {
   return Math.abs(Math.round(num)).toLocaleString("id-ID");
 }
+
+export function smoothstep(a: number, b: number, x: number): number {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+}

@@ -8,6 +8,9 @@ import Clouds from "@/components/fx/Clouds";
 import Birds from "@/components/fx/Birds";
 import Tide from "@/components/fx/Tide";
 import RippleCanvas from "@/components/fx/RippleCanvas";
+import SkyFx from "@/components/fx/SkyFx";
+import CelestialBodies from "@/components/fx/CelestialBodies";
+import TimePanel from "@/components/fx/TimePanel";
 
 interface HeroProps {
   isNight: boolean;
@@ -68,33 +71,9 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
         );
       });
 
-      const startH1 = isNight ? "rgb(6,12,34)" : "rgb(59,127,196)";
-      const startH2 = isNight ? "rgb(20,38,76)" : "rgb(191,230,251)";
-      const endH1 = isNight ? "rgb(3,6,18)" : "rgb(31,79,143)";
-      const endH2 = isNight ? "rgb(10,20,44)" : "rgb(255,200,150)";
-
-      gsap.set(heroRef.current, {
-        "--h1": startH1,
-        "--h2": startH2,
-      });
-
+      // Sky gradient is now managed by SkyFx + skyEngine, so we only need
+      // to animate the sun/celestial body downward and fade hero copy.
       tl.to(
-        ".sun",
-        {
-          y: () => window.innerHeight * 0.5,
-          scale: 1.3,
-        },
-        0
-      )
-        .to(
-          heroRef.current,
-          {
-            "--h1": endH1,
-            "--h2": endH2,
-          },
-          0
-        )
-        .to(
           ".hero-copy",
           {
             y: () => -window.innerHeight * 0.2,
@@ -129,6 +108,8 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
       ref={heroRef}
       data-tod={isNight ? "night" : "day"}
     >
+      <SkyFx />
+      <CelestialBodies reducedMotion={reducedMotion} />
       <div className="sun" />
       <Clouds />
       <Birds reducedMotion={reducedMotion} />
@@ -148,6 +129,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
       <div className="hint">Gulir untuk menyelam</div>
       <Tide />
       <RippleCanvas reducedMotion={reducedMotion} />
+      <TimePanel reducedMotion={reducedMotion} />
     </header>
   );
 }
