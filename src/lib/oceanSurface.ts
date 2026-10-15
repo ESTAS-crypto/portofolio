@@ -66,13 +66,15 @@ export function surf(x: number, frac: number, wvWidth: number, wvHeight: number)
  * Fallback: berdasarkan waktu absolut.
  */
 export function getWaveFrac(wvSvg: SVGSVGElement | null, t: number): number {
-  if (wvSvg) {
-    const a = wvSvg.getAnimations?.();
-    if (a && a[0] && a[0].currentTime != null) {
-      return ((a[0].currentTime as number) % 12000) / 12000;
+  if (wvSvg && wvSvg.getAnimations) {
+    const anims = wvSvg.getAnimations();
+    const anim = anims.find((a) => (a as CSSAnimation).animationName === "sway") || anims[0];
+    if (anim && anim.currentTime != null) {
+      const ms = Number(anim.currentTime);
+      return (((ms % 12000) + 12000) % 12000) / 12000;
     }
   }
-  return ((t * 1000) % 12000) / 12000;
+  return (((t * 1000) % 12000) + 12000) % 12000 / 12000;
 }
 
 /**

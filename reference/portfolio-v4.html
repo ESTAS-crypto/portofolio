@@ -1993,10 +1993,10 @@ lay();addEventListener('resize',lay);document.fonts&&document.fonts.ready.then(l
 if(window.ResizeObserver){const ro=new ResizeObserver(()=>lay());ro.observe(tide);ro.observe(wv);ro.observe(sp)}
 setInterval(()=>{if(!document.hidden)lay()},400);
 window.__oc={tide,wv,surf,frac,splash,bub,st:()=>({cy,ca,spx,spw,sh:sp.offsetHeight})};
-function frac(t){const a=w1.getAnimations&&w1.getAnimations()[0];const ms=a&&a.currentTime!=null?a.currentTime:t*1000;return (ms%12000)/12000}
+function frac(t){const anims=w1.getAnimations&&w1.getAnimations();const a=anims&&(anims.find(x=>x.animationName==='sway')||anims[0]);const ms=a&&a.currentTime!=null?a.currentTime:t*1000;return (((ms%12000)+12000)%12000)/12000}
 function surf(x,f){const u=Wd/1200,xu=(((x+f*Wd)/u)%1200+1200)%1200,i=Math.floor(xu),yy=YT[i]+(YT[i+1]-YT[i])*(xu-i);return yy*(Hd/120)-1}
-gs.ticker.add(t=>{const f=frac(t),shh=sp.offsetHeight,xs=[spx-spw*.36,spx,spx+spw*.36].map(x=>surf(x,f)),y=(xs[0]+xs[1]+xs[2])/3+shh*.025,a=cl(Math.atan2(xs[2]-xs[0],spw*.72)*57.3*.75,-9,9);
- cy+=(y-cy)*.25;ca+=(a-ca)*.2;sp.style.transform=`translate3d(0,${cy.toFixed(1)}px,0) rotate(${ca.toFixed(2)}deg)`;foam.style.transform=`translate3d(${spx.toFixed(1)}px,${(cy-1).toFixed(1)}px,0)`});
+gs.ticker.add(t=>{const f=frac(t),shh=sp.offsetHeight,wC=surf(spx,f),wL=surf(spx-spw*.32,f),wR=surf(spx+spw*.32,f),y=wC*.5+(wL+wR)*.25+shh*.04,a=cl(Math.atan2(wR-wL,spw*.64)*57.3*.85,-11,11);
+ cy+=(y-cy)*.55;ca+=(a-ca)*.5;sp.style.transform=`translate3d(0,${cy.toFixed(1)}px,0) rotate(${ca.toFixed(2)}deg)`;foam.style.transform=`translate3d(${spx.toFixed(1)}px,${(cy-1).toFixed(1)}px,0)`});
 // efek air
 function mk(c,s){const e=document.createElement('i');e.className=c;if(s)e.style.cssText=s;tide.appendChild(e);return e}
 function splash(x,y,big,silent){if(!silent)document.dispatchEvent(new CustomEvent('ocean:splash'));const k=big?1:.5;

@@ -167,11 +167,19 @@ export default function Ship({ reducedMotion = false }: ShipProps) {
     const tickShip = (t: number) => {
       const f = frac(t);
       const shh = sp.offsetHeight || 120;
-      const xs = [spx - spw * 0.36, spx, spx + spw * 0.36].map((x) => surfAt(x, f));
-      const y = (xs[0] + xs[1] + xs[2]) / 3 + shh * 0.025;
-      const a = cl(Math.atan2(xs[2] - xs[0], spw * 0.72) * 57.3 * 0.75, -9, 9);
-      cy += (y - cy) * 0.25;
-      ca += (a - ca) * 0.2;
+      const wCenter = surfAt(spx, f);
+      const wLeft = surfAt(spx - spw * 0.32, f);
+      const wRight = surfAt(spx + spw * 0.32, f);
+
+      // Ketinggian vertikal: 50% titik tengah kapal + 25% kedua sisi + draft alami kapal (+shh * 0.04)
+      const y = wCenter * 0.5 + (wLeft + wRight) * 0.25 + shh * 0.04;
+      // Sudut kemiringan (pitch): mengikuti lereng ombak lokal secara presisi tanpa lag
+      const a = cl(Math.atan2(wRight - wLeft, spw * 0.64) * 57.3 * 0.85, -11, 11);
+
+      // Kecepatan lerp responsif (0.55): menghilangkan phase lag sehingga kapal pas di puncak saat ombak mencapai puncak
+      cy += (y - cy) * 0.55;
+      ca += (a - ca) * 0.5;
+
       sp.style.transform = `translate3d(0,${cy.toFixed(1)}px,0) rotate(${ca.toFixed(2)}deg)`;
       foam.style.transform = `translate3d(${spx.toFixed(1)}px,${(cy - 1).toFixed(1)}px,0)`;
     };
