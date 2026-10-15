@@ -23,7 +23,7 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
     if (!cel || !moon || !hero) return;
 
     function render() {
-      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor } = skyEngine.sky;
+      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor, isNight } = skyEngine.sky;
       const W = hero!.clientWidth;
       const H = hero!.clientHeight;
 
@@ -34,6 +34,7 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
       hero!.style.setProperty("--clo", cloudOpacity.toFixed(3));
       hero!.style.setProperty("--hc", heroTextColor);
       hero!.style.setProperty("--bc", birdColor);
+      hero!.dataset.tod = isNight ? "night" : "day";
 
       // Moon phase SVG
       if (lit && sh) {
@@ -82,8 +83,10 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
 
   return (
     <>
-      {/* Sun orbit wrapper — wraps the existing .sun div */}
-      <div ref={celRef} className="cel" aria-hidden="true" />
+      {/* Sun orbit wrapper — wraps .sun inside .cel as in v4 HTML */}
+      <div ref={celRef} className="cel" aria-hidden="true">
+        <div className="sun" />
+      </div>
 
       {/* Moon */}
       <div ref={moonRef} className="moon mx" aria-hidden="true">

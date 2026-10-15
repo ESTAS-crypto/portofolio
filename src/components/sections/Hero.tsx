@@ -110,7 +110,6 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
     >
       <SkyFx />
       <CelestialBodies reducedMotion={reducedMotion} />
-      <div className="sun" />
       <Clouds />
       <Birds reducedMotion={reducedMotion} />
 

@@ -22,6 +22,7 @@ import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
 import { clamp } from "@/lib/math";
 import { surf, getWaveFrac, setOceanContext } from "@/lib/oceanSurface";
+import { skyEngine } from "@/lib/skyTimeEngine";
 
 interface ShipProps {
   reducedMotion?: boolean;
@@ -757,14 +758,18 @@ export default function Ship({ reducedMotion = false }: ShipProps) {
       const s = oc.st();
       const f = frac(t);
       const todR = document.getElementById("todR") as HTMLInputElement | null;
-      const h = (todR ? Number(todR.value) : 720) / 60;
+      const h = skyEngine.sky.hour;
       const aS = ((h - 6) / 24) * 2 * Math.PI;
       const aM = ((h - 18) / 24) * 2 * Math.PI;
       const sunE = Math.max(0, Math.sin(aS));
       const moonE = Math.max(0, Math.sin(aM));
       const night = h >= 12 ? ss(17.5, 20.5, h) : 1 - ss(4.5, 7, h);
       const wm = cl(Math.max(Math.exp(-Math.pow((h - 6.3) / 0.9, 2)), Math.exp(-Math.pow((h - 17.9) / 0.9, 2))) * 1.2, 0, 1);
-      const mo = (window as unknown as { __moon?: { k?: number; red?: number } }).__moon || { k: 0.5, red: 0 };
+      const mo = {
+        k: skyEngine.moon.fraction ?? 0.5,
+        red: skyEngine.moon.eclipseRed ?? 0,
+      };
+      (window as unknown as { __moon?: typeof mo }).__moon = mo;
       const rd = cl(mo.red || 0, 0, 1);
 
       curGlt.iS = lerp(curGlt.iS, ss(0, 0.12, sunE) * (0.4 + 0.6 * (1 - sunE)), k);

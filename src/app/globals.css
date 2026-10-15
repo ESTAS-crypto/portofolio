@@ -3326,7 +3326,6 @@ html[data-tod="night"] #hero::before,
   transform-origin: 50% 88%;
   will-change: transform;
   pointer-events: none;
-  z-index: 5;
 }
 
 @media (max-width: 760px) {
@@ -3425,35 +3424,7 @@ html[data-tod="night"] #hero::before,
 }
 
 .foam {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: calc(var(--sh) * 1.6);
-  height: 12px;
-  margin: -6px 0 0 calc(var(--sh) * -0.8);
-  border-radius: 50%;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-  z-index: 4;
-}
-
-.foam i {
-  position: absolute;
-  inset: -2px -8px;
-  border: 2px solid rgba(255, 255, 255, 0.45);
-  border-radius: 50%;
-  animation: foamp 2.8s ease-out infinite;
-}
-
-@keyframes foamp {
-  from {
-    transform: scale(0.8);
-    opacity: 0.9;
-  }
-  to {
-    transform: scale(1.18);
-    opacity: 0;
-  }
+  display: none !important;
 }
 
 .tide svg.ln {
@@ -3466,7 +3437,6 @@ html[data-tod="night"] #hero::before,
   animation: none;
   overflow: visible;
   pointer-events: none;
-  z-index: 4;
 }
 
 .tide .ptc {
@@ -3512,14 +3482,12 @@ html[data-tod="night"] #hero::before,
   left: 0;
   top: -30px;
   pointer-events: none;
-  z-index: 3;
 }
 
 .tide canvas.spl {
   position: absolute;
   left: 0;
   pointer-events: none;
-  z-index: 8;
 }
 
 /* Calm mode hides ship and water FX */
