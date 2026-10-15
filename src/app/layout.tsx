@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     shortcut: "/icon-512.png",
     apple: "/apple-touch-icon.png",
   },
+  verification: {
+    google: "0t1JH8rP3YfI2uNtGqeH3MZ-cl3t2p0dcB92XKPkV4I",
+  },
 };
 
 export const viewport: Viewport = {
@@ -64,6 +67,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <meta name="google-site-verification" content="0t1JH8rP3YfI2uNtGqeH3MZ-cl3t2p0dcB92XKPkV4I" />
         <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
