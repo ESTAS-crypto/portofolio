@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { LenisProvider, useLenis } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useNightMode } from "@/hooks/useNightMode";
 import { siteConfig } from "@/data/site";
 import { oceanStore } from "@/lib/oceanStore";
@@ -35,8 +36,8 @@ import Contact from "@/components/sections/Contact";
 import ProjectPortal from "@/components/portal/ProjectPortal";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
-function PortfolioApp() {
-  const reducedMotion = useReducedMotion();
+function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
+  usePerformanceMonitor();
   const isNight = useNightMode();
   const { scrollTo } = useLenis();
 
@@ -198,7 +199,7 @@ export default function Home() {
 
   return (
     <LenisProvider reducedMotion={reducedMotion}>
-      <PortfolioApp />
+      <PortfolioApp reducedMotion={reducedMotion} />
     </LenisProvider>
   );
 }
