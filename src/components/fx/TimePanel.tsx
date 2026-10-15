@@ -29,6 +29,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const sliderRef = useRef<HTMLInputElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const moonLabelRef = useRef<HTMLSpanElement>(null);
+  const iconRef = useRef<HTMLSpanElement>(null);
   const orbRef = useRef<HTMLButtonElement>(null);
   const twRef = useRef<gsap.core.Timeline | null>(null);
 
@@ -49,24 +50,38 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     const label = labelRef.current;
     const moonLabel = moonLabelRef.current;
     const slider = sliderRef.current;
+    const icon = iconRef.current;
+    const T = ref.current;
     if (!label || !slider) return;
 
     const unsub = skyEngine.subscribe(() => {
       label.textContent = skyEngine.sky.label;
       slider.value = String(Math.round(skyEngine.sky.hour * 60));
+      if (icon) {
+        icon.textContent = skyEngine.sky.icon;
+      }
       if (moonLabel) {
         moonLabel.textContent =
           skyEngine.moon.phaseName +
           (skyEngine.moon.eclipse ? " · Gerhana" : "");
       }
+      if (T) {
+        T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
+      }
     });
     // Initial render
     label.textContent = skyEngine.sky.label;
     slider.value = String(Math.round(skyEngine.sky.hour * 60));
+    if (icon) {
+      icon.textContent = skyEngine.sky.icon;
+    }
     if (moonLabel) {
       moonLabel.textContent =
         skyEngine.moon.phaseName +
         (skyEngine.moon.eclipse ? " · Gerhana" : "");
+    }
+    if (T) {
+      T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
     }
 
     return unsub;
@@ -269,7 +284,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           doSetMin(!min, false, true);
         }}
       >
-        <span className="tod-ic" id="todIc" aria-hidden="true" suppressHydrationWarning>
+        <span ref={iconRef} className="tod-ic" id="todIc" aria-hidden="true" suppressHydrationWarning>
           ☀
         </span>
       </button>
