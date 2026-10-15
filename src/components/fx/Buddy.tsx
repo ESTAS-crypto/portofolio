@@ -38,7 +38,7 @@ const MOVE_SPEED: Record<string, number> = {
   wander: 90,
   explore: 110,
   curious: 100,
-  flee: 190,
+  flee: 260,
   play: 70,
   rest: 0,
 };
@@ -329,23 +329,41 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       prevMouseX = mouseX;
       prevMouseY = mouseY;
 
-      // Logika perilaku otonom
+      // Logika perilaku otonom & deteksi ancaman (Paus / Megalodon)
       const threat =
         oceanStore.getThreat() ||
-        (window as unknown as { __threat?: { x: number; y: number; r: number } }).__threat;
+        (window as unknown as { __threat?: { x: number; y: number; r: number; mega?: boolean } }).__threat;
       const screenScale = clamp(Math.min(W, H0) / 800, 0.7, 1.6);
 
-      if (threat && Math.hypot(threat.x - posX, threat.y - posY) < threat.r * 1.2) {
+      const threatDist = threat ? Math.hypot(threat.x - posX, threat.y - posY) : 99999;
+      // Megalodon adalah ancaman raksasa & cepat: terdeteksi langsung begitu mendekat ke viewport
+      const isThreatNear =
+        threat &&
+        (threat.mega
+          ? threatDist < Math.max(threat.r * 2.4, W * 0.82)
+          : threatDist < threat.r * 1.35);
+
+      if (isThreatNear && threat) {
         if (mode !== "flee") {
+          lastSayTime = -9;
           speak("Awas!");
+          spawnBubble();
+          // Dorongan impuls seketika menjauhi monster tanpa lag akselerasi
+          const ax = posX - threat.x;
+          const ay = posY - threat.y;
+          const al = Math.hypot(ax, ay) || 1;
+          velX = (ax / al) * 260;
+          velY = (ay / al) * 180;
+          dir = ax >= 0 ? 1 : -1;
+          scaleX = dir;
         }
         mode = "flee";
         const ax = posX - threat.x;
         const ay = posY - threat.y;
         const al = Math.hypot(ax, ay) || 1;
-        targetX = clamp(posX + (ax / al) * 400, bounds.l, bounds.r);
-        targetY = clamp(posY + (ay / al) * 300, bounds.t, bounds.b);
-        modeTimer = t + 0.6;
+        targetX = clamp(posX + (ax / al) * 600, bounds.l, bounds.r);
+        targetY = clamp(posY + (ay / al) * 450, bounds.t, bounds.b);
+        modeTimer = t + 1.2;
       } else if (mode !== "flee" && mouseX > -900 && Math.hypot(mouseX - posX, mouseY - posY) < 320 && cursorSpeed < 0.8) {
         slowHoverTimer += dt;
         if (slowHoverTimer > 0.8 && mode !== "curious") {
@@ -382,7 +400,7 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
         dvy = Math.sin(t * 1.2) * 8;
       }
 
-      const accel = 1 - Math.exp(-dt * 2.4);
+      const accel = mode === "flee" ? 1 - Math.exp(-dt * 6.5) : 1 - Math.exp(-dt * 2.4);
       velX += (dvx - velX) * accel;
       velY += (dvy - velY) * accel;
       scrollVel += (dyS - scrollVel) * 0.12;
@@ -392,7 +410,7 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       posY = clamp(posY + velY * dt, bounds.t - 20, bounds.b + 20);
 
       if (Math.abs(velX) > 35) dir = velX > 0 ? 1 : -1;
-      scaleX += (dir - scaleX) * (1 - Math.exp(-dt * 7));
+      scaleX += (dir - scaleX) * (1 - Math.exp(-dt * (mode === "flee" ? 14 : 7)));
 
       speed += (clamp(Math.hypot(velX, velY) / (150 * screenScale), 0, 1) - speed) * (1 - Math.exp(-dt * 5));
       phase += dt * (1.8 + 7 * speed);
