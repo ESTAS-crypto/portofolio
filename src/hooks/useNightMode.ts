@@ -1,25 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { skyEngine } from "@/lib/skyTimeEngine";
 
 export function getIsNight(): boolean {
-  if (typeof window !== "undefined") {
-    const docTod = document.documentElement.dataset.tod;
-    if (docTod === "night") return true;
-    if (docTod === "day") return false;
-  }
-  const hour = new Date().getHours();
-  // Jam 19.00 malam sampai 05.00 pagi = malam (night mode)
-  return hour >= 19 || hour < 5;
+  return skyEngine.sky.isNight;
 }
 
 export function useNightMode(): boolean {
   const [isNight, setIsNight] = useState<boolean>(getIsNight);
 
   useEffect(() => {
-    const update = () => {
-      const hour = new Date().getHours();
-      const n = hour >= 19 || hour < 5;
+    // Sinkron dengan skyEngine
+    const unsub = skyEngine.subscribe(() => {
+      const n = skyEngine.sky.isNight;
       setIsNight(n);
       const tod = n ? "night" : "day";
       document.documentElement.dataset.tod = tod;
@@ -27,11 +21,15 @@ export function useNightMode(): boolean {
       if (hero) {
         hero.dataset.tod = tod;
       }
-    };
+    });
 
-    update();
-    const timer = setInterval(update, 10_000);
-    return () => clearInterval(timer);
+    // Set awal
+    const n = skyEngine.sky.isNight;
+    setIsNight(n);
+    const tod = n ? "night" : "day";
+    document.documentElement.dataset.tod = tod;
+
+    return unsub;
   }, []);
 
   return isNight;

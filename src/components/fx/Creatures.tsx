@@ -175,6 +175,18 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
       cr.e.setAttribute("cx", String(S.eye[0]));
       drawCreature(cr, lastTime);
 
+      const spawnH = w * 0.377;
+      const initialThreat = {
+        x: (dir > 0 ? -w * 1.05 : window.innerWidth + w * 0.05) + w * 0.5,
+        y: y0 + spawnH * 0.5,
+        r: w * (isMega ? 0.45 : 0.3),
+        mega: isMega,
+      };
+      oceanStore.setThreat(initialThreat);
+      if (typeof window !== "undefined") {
+        (window as unknown as { __threat?: typeof initialThreat }).__threat = initialThreat;
+      }
+
       if (isMega) {
         seenMegalodonCount++;
         oceanStore.showToast(
@@ -214,6 +226,9 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
       }
       cool = lastTime + CFG.cooldownMin + Math.random() * (CFG.cooldownMax - CFG.cooldownMin);
       oceanStore.setThreat(null);
+      if (typeof window !== "undefined") {
+        (window as unknown as { __threat?: null }).__threat = null;
+      }
     };
 
     const abort = () => {
@@ -221,6 +236,9 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
       const el = cr.el;
       cr = null;
       oceanStore.setThreat(null);
+      if (typeof window !== "undefined") {
+        (window as unknown as { __threat?: null }).__threat = null;
+      }
       cool = lastTime + 4;
       gsap.to(el, {
         opacity: 0,
@@ -265,6 +283,7 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
       c.fy += (follow - c.fy) * 0.025;
 
       const y = c.y0 + Math.sin(p * Math.PI * 2 * 1.4 + c.ph) * H * 0.035 + c.fy + c.sos;
+
       c.pv += (y - c.py - c.pv) * 0.08;
       c.py = y;
 
@@ -280,11 +299,16 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
       const f = Math.min(1, (p * c.dur) / 2.5, ((1 - p) * c.dur) / 2.5);
       c.el.style.opacity = (f * f * (3 - 2 * f) * (c.mega ? 0.55 : 0.3)).toFixed(3);
 
-      oceanStore.setThreat({
+      const threatObj = {
         x: x + c.w * 0.5,
         y: y + h * 0.5,
-        r: c.w * (c.mega ? 0.42 : 0.3) * (1 + c.pulse * 0.6),
-      });
+        r: c.w * (c.mega ? 0.45 : 0.3) * (1 + c.pulse * 0.6),
+        mega: c.mega,
+      };
+      oceanStore.setThreat(threatObj);
+      if (typeof window !== "undefined") {
+        (window as unknown as { __threat?: typeof threatObj }).__threat = threatObj;
+      }
     };
 
     const onPointerDown = (e: PointerEvent) => {

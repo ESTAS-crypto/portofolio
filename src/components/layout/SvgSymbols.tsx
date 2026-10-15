@@ -26,7 +26,7 @@ export default function SvgSymbols() {
         <circle cx="99.5" cy="26" r="2.6" fill="#0a2a4a" />
       </symbol>
       <symbol id="wv" viewBox="0 0 1200 120" preserveAspectRatio="none">
-        <path d="M0 60C150 10 300 110 450 60S750 10 900 60S1050 110 1200 60V121H0Z" />
+        <path d="M0 60C150 24 300 96 450 60S750 24 900 60S1050 96 1200 60V121H0Z" />
       </symbol>
     </svg>
   );

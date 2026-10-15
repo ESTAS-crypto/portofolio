@@ -6,6 +6,8 @@ import { oceanStore } from "@/lib/oceanStore";
 import { audioEngine } from "@/lib/audioEngine";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+const rnd = Math.random;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const MESSAGES: Record<string, string> = {
   surf: "Byur! Selamat datang di bawah laut.",
@@ -24,6 +26,22 @@ const FUN_QUOTES = [
   "Glup glup glup...",
   "Mau jadi temanku?",
 ];
+
+const LOOK_QUOTES = [
+  "Wah, ikan itu lucu!",
+  "Hmm, apa ini?",
+  "Cantiknya!",
+  "Ada ikan proyek di sini!",
+];
+
+const MOVE_SPEED: Record<string, number> = {
+  wander: 90,
+  explore: 110,
+  curious: 100,
+  flee: 260,
+  play: 70,
+  rest: 0,
+};
 
 export default function Buddy({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const buddyRef = useRef<HTMLDivElement>(null);
@@ -65,7 +83,25 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
     const scarf = scarfRef.current;
     const mouth = mouthRef.current;
 
-    if (!bd || !pet || !say || !body || !lA || !sA || !lB || !sB || !aA || !fA || !aB || !fB || !head || !eye || !pup || !scarf || !mouth) {
+    if (
+      !bd ||
+      !pet ||
+      !say ||
+      !body ||
+      !lA ||
+      !sA ||
+      !lB ||
+      !sB ||
+      !aA ||
+      !fA ||
+      !aB ||
+      !fB ||
+      !head ||
+      !eye ||
+      !pup ||
+      !scarf ||
+      !mouth
+    ) {
       return;
     }
 
@@ -73,44 +109,89 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       el.setAttribute("transform", `rotate(${deg.toFixed(1)} ${ox} ${oy})`);
     };
 
+    bd.style.left = "0";
+    bd.style.right = "auto";
+    bd.style.top = "0";
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    let sw = 150;
+    let sh = 100;
+    let bounds = { l: 0, r: 0, t: 0, b: 0 };
+
+    function updateSize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      sw = bd?.offsetWidth || 150;
+      sh = bd?.offsetHeight || 100;
+      const m = W > 760;
+      bounds = {
+        l: sw * 0.5 + 8,
+        r: W - (m ? 132 : 8) - sw * 0.5,
+        t: 96 + sh * 0.5,
+        b: H - (m ? 96 : 140) - sh * 0.5,
+      };
+    }
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+
     const spinState = { spin: 0 };
-    let lastScroll = window.scrollY;
-    let activity = 0;
-    let direction = 1;
-    let curY = window.innerHeight * 0.4;
-    let rotation = 6;
-    let opacity = 0;
+    let scrollVel = 0;
+    let speed = 0;
+    let posX = W * 0.3;
+    let posY = H * 0.5;
+    let velX = 0;
+    let velY = 0;
+    let dir = 1;
+    let scaleX = 1;
+    let targetX = posX;
+    let targetY = posY;
+    let mode: "wander" | "explore" | "curious" | "flee" | "play" | "rest" = "rest";
+    let modeTimer = 0;
+    let isHover = 0;
+    let wave = 0;
     let phase = 0;
     let lastTime = 0;
-    let wave = 0;
-    let isHover = 0;
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
+    let opacity = 0;
+    let lastScroll = window.scrollY;
+    let mouseX = -999;
+    let mouseY = -999;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let cursorSpeed = 0;
+    let slowHoverTimer = 0;
+    let nextBlink = 2;
+    let blinkEnd = 0;
+    let lastSayTime = -9;
+    let sayTimer: NodeJS.Timeout | null = null;
+    let frameCount = 0;
+    let lastKey = "";
     let petX = 100;
     let petY = 300;
     let petDir = 1;
-    let nextBlink = 2;
-    let blinkEnd = 0;
-    let lastKey = "";
-    let lastSpeakTime = -9;
-    let speakTimer: NodeJS.Timeout | null = null;
-    let frameCount = 0;
+    let lastBubbleTime = 0;
+    let fishList: { x: number; y: number }[] = [];
+    let fishScanTime = 0;
+    let inspectTime = 0;
+    let pitch = 0;
     let lampVal = 0;
     let headRot = 0;
-    let hasPointerMoved = false;
+    let pupilAngle = 0;
 
     const handlePointerMove = (e: PointerEvent) => {
-      hasPointerMoved = true;
       mouseX = e.clientX;
       mouseY = e.clientY;
     };
-
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     const speak = (msg: string, durationMs = 3400) => {
-      // Jangan pernah bicara jika sedang berada di daratan atau buddy tersembunyi
-      if (oceanStore.getDepth() >= 0 || opacity <= 0.05 || oceanStore.isCalm()) return;
+      if (oceanStore.getDepth() >= 0 || oceanStore.isCalm()) return;
+      if (lastTime - lastSayTime < 6 && msg !== "Awas!") return;
+      lastSayTime = lastTime;
 
+      bd.classList.toggle("sr", posX >= W * 0.55);
+      bd.classList.toggle("sl", posX < W * 0.55);
       say.textContent = msg;
       gsap.killTweensOf(say);
       gsap.fromTo(
@@ -118,32 +199,33 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
         { opacity: 0, y: 10, scale: 0.8 },
         { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }
       );
-      if (speakTimer) clearTimeout(speakTimer);
-      speakTimer = setTimeout(() => {
+      if (sayTimer) clearTimeout(sayTimer);
+      sayTimer = setTimeout(() => {
         gsap.to(say, { opacity: 0, y: -6, duration: 0.3 });
       }, durationMs);
     };
 
     const spawnBubble = () => {
-      const m = mouth.getBoundingClientRect();
       const b = document.createElement("i");
-      const size = 4 + Math.random() * 7;
+      const size = 4 + rnd() * 7;
       b.className = "tb";
-      b.style.cssText = `left:${m.left + m.width / 2}px;top:${m.top + m.height / 2}px;width:${size}px;height:${size}px;z-index:24`;
+      b.style.cssText = `left:${posX + dir * sw * 0.3}px;top:${posY + sh * 0.05}px;width:${size}px;height:${size}px;z-index:24`;
       document.body.appendChild(b);
 
       gsap.to(b, {
-        y: -70 - Math.random() * 90,
-        x: (Math.random() - 0.5) * 30,
+        y: -70 - rnd() * 90,
+        x: (rnd() - 0.5) * 30,
         opacity: 0,
         scale: 1.5,
-        duration: 1.3 + Math.random() * 0.8,
+        duration: 1.3 + rnd() * 0.8,
         ease: "power1.out",
         onComplete: () => b.remove(),
       });
     };
 
     const handleHit = () => {
+      audioEngine.pop(350);
+      audioEngine.sf.giggle();
       gsap.to(spinState, {
         spin: spinState.spin + 360,
         duration: 0.9,
@@ -152,9 +234,42 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       for (let i = 0; i < 9; i++) {
         setTimeout(spawnBubble, i * 60);
       }
-      const quote = FUN_QUOTES[Math.floor(Math.random() * FUN_QUOTES.length)];
-      speak(quote);
-      lastSpeakTime = lastTime;
+      lastSayTime = -9;
+      speak(FUN_QUOTES[Math.floor(rnd() * FUN_QUOTES.length)]);
+    };
+
+    const pickMode = (t: number) => {
+      const r = rnd();
+      inspectTime = 0;
+      if (r < 0.5) {
+        mode = "wander";
+        targetX = lerp(bounds.l, bounds.r, rnd());
+        targetY = lerp(bounds.t, bounds.b, rnd());
+        modeTimer = t + 2.5 + rnd() * 4.5;
+      } else if (r < 0.74 && fishList.length > 0) {
+        mode = "explore";
+        const f = fishList[Math.floor(rnd() * fishList.length)];
+        targetX = clamp(f.x + (f.x > posX ? -1 : 1) * sw * 0.55, bounds.l, bounds.r);
+        targetY = clamp(f.y, bounds.t, bounds.b);
+        modeTimer = t + 9;
+      } else if (r < 0.88) {
+        mode = "rest";
+        modeTimer = t + 2 + rnd() * 2;
+      } else if (r < 0.96) {
+        mode = "play";
+        modeTimer = t + 2.4;
+        targetX = lerp(bounds.l, bounds.r, rnd());
+        targetY = lerp(bounds.t, bounds.b, rnd());
+        gsap.to(spinState, { spin: spinState.spin + 360, duration: 1, ease: "back.inOut(1.3)" });
+        for (let i = 0; i < 8; i++) {
+          setTimeout(spawnBubble, i * 70);
+        }
+      } else {
+        mode = "wander";
+        targetX = pet ? petX : lerp(bounds.l, bounds.r, rnd());
+        targetY = pet ? petY : lerp(bounds.t, bounds.b, rnd());
+        modeTimer = t + 4;
+      }
     };
 
     const onTick = (t: number) => {
@@ -162,16 +277,16 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       lastTime = t;
       frameCount++;
 
-      const H = window.innerHeight;
+      const H0 = window.innerHeight;
       const sy = window.scrollY;
-      const dy = sy - lastScroll;
+      const dyS = sy - lastScroll;
       lastScroll = sy;
 
       const v = oceanStore.getDepth();
       const calm = oceanStore.isCalm();
 
-      // Jika berada di daratan / angkasa (v >= 0) atau mode tenang:
-      // Penyelam, ikan peliharaan, dan balon bicara langsung hilang seketika!
+      // Jika di daratan / angkasa (v >= 0) atau mode tenang:
+      // Penyelam, pet, dan balon bicara langsung disembunyikan seketika
       if (v >= 0 || calm) {
         if (opacity > 0) {
           opacity = 0;
@@ -179,9 +294,9 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
           pet.style.opacity = "0";
           bd.style.visibility = "hidden";
           pet.style.visibility = "hidden";
-          if (speakTimer) {
-            clearTimeout(speakTimer);
-            speakTimer = null;
+          if (sayTimer) {
+            clearTimeout(sayTimer);
+            sayTimer = null;
           }
           gsap.killTweensOf(say);
           gsap.set(say, { opacity: 0, y: -6 });
@@ -189,43 +304,139 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
         return;
       }
 
-      // Saat di dalam air: respon fade-out cepat saat scroll ke atas, fade-in halus saat menyelam
-      const targetOp = clamp(-v / 80, 0, 1);
-      const fadeSpeed = dy < 0 ? 0.35 : 0.15;
-      opacity += (targetOp - opacity) * fadeSpeed;
-      const visible = opacity > 0.01;
-
+      // Fade-in halus saat di bawah laut
+      opacity += (clamp(-v / 120, 0, 1) - opacity) * 0.1;
+      const visible = opacity > 0.01 && !calm;
       bd.style.opacity = opacity.toFixed(3);
       pet.style.opacity = opacity.toFixed(3);
       bd.style.visibility = visible ? "visible" : "hidden";
       pet.style.visibility = visible ? "visible" : "hidden";
-
       if (!visible) return;
 
-      if (Math.abs(dy) > 0.4) direction = dy > 0 ? 1 : -1;
-      activity += (Math.min(1, Math.abs(dy) / 7) - activity) * 0.12;
+      if (frameCount % 30 === 0) updateSize();
 
-      const depthRatio = clamp(-v / 1000, 0, 1);
-      const targetY = H * (0.36 + 0.26 * depthRatio) + clamp(dy / 12, -1, 1) * H * 0.14;
-      const targetRot = direction * 68 * activity + (1 - activity) * 6;
+      // Scan ikan terdekat di DOM secara periodik
+      if (t - fishScanTime > 0.5) {
+        fishScanTime = t;
+        fishList = Array.from(document.querySelectorAll(".fish"))
+          .map((f) => {
+            const r = f.getBoundingClientRect();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+          })
+          .filter((p) => p.x > 0 && p.x < W && p.y > 0 && p.y < H0);
+      }
 
-      curY += (targetY - curY) * 0.07;
-      rotation += (targetRot - rotation) * 0.08;
+      // Deteksi kecepatan kursor
+      cursorSpeed += (Math.min(60, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY)) - cursorSpeed) * 0.3;
+      prevMouseX = mouseX;
+      prevMouseY = mouseY;
 
-      bd.style.transform = `translate3d(${Math.sin(t * 0.8) * 10 * (1 - activity * 0.6)}px,${curY - bd.offsetHeight / 2}px,0)`;
+      // Logika perilaku otonom & deteksi ancaman (Paus / Megalodon)
+      const threat =
+        oceanStore.getThreat() ||
+        (window as unknown as { __threat?: { x: number; y: number; r: number; mega?: boolean } }).__threat;
+      const screenScale = clamp(Math.min(W, H0) / 800, 0.7, 1.6);
 
-      phase += dt * (2.4 + 10 * activity);
-      wave += (isHover - wave) * 0.12;
+      const threatDist = threat ? Math.hypot(threat.x - posX, threat.y - posY) : 99999;
+      // Megalodon adalah ancaman raksasa & cepat: terdeteksi langsung begitu mendekat ke viewport
+      const isThreatNear =
+        threat &&
+        (threat.mega
+          ? threatDist < Math.max(threat.r * 2.4, W * 0.82)
+          : threatDist < threat.r * 1.35);
 
-      setRotate(body, rotation + spinState.spin, 85, 55);
+      if (isThreatNear && threat) {
+        if (mode !== "flee") {
+          lastSayTime = -9;
+          speak("Awas!");
+          spawnBubble();
+          // Dorongan impuls seketika menjauhi monster tanpa lag akselerasi
+          const ax = posX - threat.x;
+          const ay = posY - threat.y;
+          const al = Math.hypot(ax, ay) || 1;
+          velX = (ax / al) * 260;
+          velY = (ay / al) * 180;
+          dir = ax >= 0 ? 1 : -1;
+          scaleX = dir;
+        }
+        mode = "flee";
+        const ax = posX - threat.x;
+        const ay = posY - threat.y;
+        const al = Math.hypot(ax, ay) || 1;
+        targetX = clamp(posX + (ax / al) * 600, bounds.l, bounds.r);
+        targetY = clamp(posY + (ay / al) * 450, bounds.t, bounds.b);
+        modeTimer = t + 1.2;
+      } else if (mode !== "flee" && mouseX > -900 && Math.hypot(mouseX - posX, mouseY - posY) < 320 && cursorSpeed < 0.8) {
+        slowHoverTimer += dt;
+        if (slowHoverTimer > 0.8 && mode !== "curious") {
+          mode = "curious";
+          modeTimer = t + 2.6;
+        }
+        if (mode === "curious") {
+          targetX = clamp(mouseX - dir * 150, bounds.l, bounds.r);
+          targetY = clamp(mouseY, bounds.t, bounds.b);
+        }
+      } else {
+        slowHoverTimer = 0;
+      }
+
+      const dx = targetX - posX;
+      const dy = targetY - posY;
+      const dist = Math.hypot(dx, dy) || 1;
+
+      if (mode === "explore" && !inspectTime && dist < sw * 0.7) {
+        inspectTime = t;
+        modeTimer = t + 2 + rnd() * 1.5;
+        if (rnd() < 0.5) speak(LOOK_QUOTES[Math.floor(rnd() * LOOK_QUOTES.length)]);
+      }
+
+      if (t > modeTimer) pickMode(t);
+
+      const inspecting = mode === "explore" && inspectTime > 0;
+      const maxSpd = ((inspecting ? 0 : MOVE_SPEED[mode]) || 0) * screenScale;
+      const arrival = clamp(dist / 140, 0.12, 1);
+      let dvx = (dx / dist) * maxSpd * arrival;
+      let dvy = (dy / dist) * maxSpd * arrival;
+      if (mode === "rest" || inspecting) {
+        dvx = 0;
+        dvy = Math.sin(t * 1.2) * 8;
+      }
+
+      const accel = mode === "flee" ? 1 - Math.exp(-dt * 6.5) : 1 - Math.exp(-dt * 2.4);
+      velX += (dvx - velX) * accel;
+      velY += (dvy - velY) * accel;
+      scrollVel += (dyS - scrollVel) * 0.12;
+      velY += scrollVel * 0.45;
+
+      posX = clamp(posX + velX * dt, bounds.l - 20, bounds.r + 20);
+      posY = clamp(posY + velY * dt, bounds.t - 20, bounds.b + 20);
+
+      if (Math.abs(velX) > 35) dir = velX > 0 ? 1 : -1;
+      scaleX += (dir - scaleX) * (1 - Math.exp(-dt * (mode === "flee" ? 14 : 7)));
+
+      speed += (clamp(Math.hypot(velX, velY) / (150 * screenScale), 0, 1) - speed) * (1 - Math.exp(-dt * 5));
+      phase += dt * (1.8 + 7 * speed);
+
+      const shouldWave = isHover || (mode === "curious" && dist < sw * 1.2) || inspecting ? 1 : 0;
+      wave += (shouldWave - wave) * 0.12;
+
+      pitch += (clamp(Math.atan2(velY, Math.abs(velX) + 40) * 57.3, -50, 50) - pitch) * clamp(dt * 6, 0, 1);
+
+      // Posisi container di layar penuh
+      bd.style.transform = `translate3d(${(posX - sw / 2).toFixed(1)}px,${(posY - sh / 2).toFixed(1)}px,0)`;
+      body.setAttribute(
+        "transform",
+        `translate(85 0) scale(${scaleX.toFixed(2)} 1) translate(-85 0) rotate(${(pitch + spinState.spin + 2.5 * speed * Math.sin(phase)).toFixed(1)} 85 55)`
+      );
+
+      // Artikulasi tungkai & lengan
       setRotate(lA, 16 * Math.sin(phase), 70, 60);
       setRotate(sA, 24 * Math.sin(phase - 0.9), 44, 66);
       setRotate(lB, 16 * Math.sin(phase + Math.PI), 70, 56);
       setRotate(sB, 24 * Math.sin(phase + Math.PI - 0.9), 44, 60);
-
       setRotate(
         aA,
-        (-8 * activity + 6 * Math.sin(phase) * (1 - activity)) * (1 - wave) + (-70 + 8 * Math.sin(t * 9)) * wave,
+        (-8 * speed + 6 * Math.sin(phase) * (1 - speed)) * (1 - wave) + (-70 + 8 * Math.sin(t * 9)) * wave,
         108,
         54
       );
@@ -235,99 +446,80 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
         128,
         64
       );
-      setRotate(aB, -4 * activity + 6 * Math.sin(phase + 1), 104, 52);
+      setRotate(aB, -4 * speed + 6 * Math.sin(phase + 1), 104, 52);
       setRotate(fB, 8 * Math.sin(phase), 124, 60);
 
-      // Rotasi kepala & pergeseran pupil melacak posisi kursor secara mulus
-      // Gunakan bounding rect container buddy untuk menghindari feedback loop transform kepala
-      const bdRect = bd.getBoundingClientRect();
-      const scaleX = bdRect.width / 240;
-      const scaleY = bdRect.height / 150;
-      const headX = bdRect.left + 136 * scaleX;
-      const headY = bdRect.top + 38 * scaleY;
+      // Tatapan mata & rotasi kepala: halus dan stabil tanpa getaran / flip 180°
+      const lookDist = mouseX > -900 ? Math.hypot(mouseX - posX, mouseY - posY) : 9999;
+      const lookX = lookDist < 520 ? mouseX : targetX;
+      const lookY = lookDist < 520 ? mouseY : targetY;
 
-      const isFinePointer = typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
-      const ptrDx = mouseX - headX;
-      const ptrDy = mouseY - headY;
-      const dist = Math.hypot(ptrDx, ptrDy);
+      // Jarak horizontal searah hadapan (forwardX selalu positif >= 60 agar tidak flip atan2 di -180/180)
+      const forwardX = Math.max(60, (lookX - posX) * dir);
+      const dyLook = lookY - posY;
+      let targetRad = Math.atan2(dyLook, forwardX) - (pitch * Math.PI) / 180;
+      targetRad = Math.atan2(Math.sin(targetRad), Math.cos(targetRad));
 
-      let targetHeadDeg = 0;
-      let pupilAngle = 0;
-
-      if (hasPointerMoved && isFinePointer && dist > 45) {
-        // Karakter menghadap ke depan (kanan). Untuk mencegah flip 180° saat kursor di area baca kiri,
-        // gunakan pitch vertikal berbasis ptrDy dengan divisor horizontal positif Math.max(80, Math.abs(ptrDx))
-        const pitchAngle = Math.atan2(ptrDy, Math.max(80, Math.abs(ptrDx)));
-        const bodyAngleRad = ((rotation + spinState.spin) * Math.PI) / 180;
-        const relativePitch = pitchAngle - bodyAngleRad * 0.4;
-
-        targetHeadDeg = clamp(relativePitch * 57.3 * 0.35, -24, 24);
-        pupilAngle = pitchAngle;
-      }
-
-      headRot += (targetHeadDeg - headRot) * 0.1;
-
+      const targetHeadDeg = clamp(targetRad * 57.3 * 0.32, -22, 22);
+      // Damping eksponensial untuk transisi kepala yang luwes dan alami
+      headRot += (targetHeadDeg - headRot) * (1 - Math.exp(-dt * 8));
       setRotate(head, headRot, 122, 46);
-      const pupDist = hasPointerMoved && isFinePointer && dist > 45 ? 1.6 : 0;
-      pup.setAttribute("cx", (150 + Math.cos(pupilAngle) * pupDist).toFixed(2));
-      pup.setAttribute("cy", (38 + Math.sin(pupilAngle) * pupDist).toFixed(2));
+
+      // Pupil mata melacak secara halus
+      pupilAngle += (targetRad - pupilAngle) * (1 - Math.exp(-dt * 10));
+      pup.setAttribute("cx", (150 + Math.cos(pupilAngle) * 1.6).toFixed(2));
+      pup.setAttribute("cy", (38 + Math.sin(pupilAngle) * 1.6).toFixed(2));
 
       // Kedipan mata
       if (t > nextBlink) {
         blinkEnd = t + 0.12;
-        nextBlink = t + 2.5 + Math.random() * 3;
+        nextBlink = t + 2.5 + rnd() * 3;
       }
       eye.setAttribute("transform", `translate(0 38) scale(1 ${t < blinkEnd ? 0.1 : 1}) translate(0 -38)`);
 
       // Kibasan syal
-      const amp = 4 + 8 * activity;
+      const amp = 4 + 8 * speed;
       const w = t * 3;
       scarf.setAttribute(
         "d",
         `M120 46Q98 ${(44 + Math.sin(w) * amp).toFixed(1)} 76 ${(52 + Math.sin(w + 1) * amp).toFixed(1)}Q58 ${(58 + Math.sin(w + 2) * amp).toFixed(1)} 40 ${(52 + Math.sin(w + 3) * amp).toFixed(1)}`
       );
 
-      // Senter menyala di kedalaman (-120m s.d. -520m)
+      // Senter menyala otomatis di kedalaman
       const lampTarget = clamp((-v - 120) / 400, 0, 1);
       if (Math.abs(lampTarget - lampVal) > 0.01) {
         lampVal = lampTarget;
         bd.style.setProperty("--lamp", lampVal.toFixed(2));
       }
 
-      // Gelembung saat berenang aktif
-      if (activity > 0.3 && t - blinkEnd > 0.16 && frameCount % 10 === 0) {
+      // Gelembung saat bergerak lincah
+      if (speed > 0.3 && t - lastBubbleTime > 0.28) {
+        lastBubbleTime = t;
         spawnBubble();
       }
 
-      // Ikan peliharaan mengorbit kepala
-      const targetPetX = headX - 90 + Math.cos(t * 0.9) * 80;
-      const targetPetY = headY + 40 + Math.sin(t * 1.3) * 50;
-      if (Math.abs(targetPetX - petX) > 2) {
-        petDir = targetPetX > petX ? 1 : -1;
-      }
-      petX += (targetPetX - petX) * 0.05;
-      petY += (targetPetY - petY) * 0.05;
-      pet.style.transform = `translate3d(${petX}px,${petY}px,0) scaleX(${petDir})`;
+      // Ikan pendamping mengikuti penyelam
+      const hx = posX + dir * sw * 0.22;
+      const hy = posY - sh * 0.05;
+      const ptx = hx - dir * sw * 0.45 + Math.cos(t * 0.9) * sw * 0.4;
+      const pty = hy + Math.sin(t * 1.3) * sw * 0.3 + sh * 0.15;
+      if (Math.abs(ptx - petX) > 2) petDir = ptx > petX ? 1 : -1;
+      petX += (ptx - petX) * 0.05;
+      petY += (pty - petY) * 0.05;
+      pet.style.transform = `translate3d(${petX.toFixed(1)}px,${petY.toFixed(1)}px,0) scaleX(${petDir})`;
 
       // Balon ucapan kontekstual
-      if (frameCount % 15 === 0) {
-        let activeSection = "";
+      if (frameCount % 30 === 0) {
+        let sec = "";
         ["about", "work", "deep", "contact"].forEach((id) => {
           const el = document.getElementById(id);
-          if (el && el.getBoundingClientRect().top <= H * 0.45) {
-            activeSection = id;
-          }
+          if (el && el.getBoundingClientRect().top <= H0 * 0.45) sec = id;
         });
-
-        const key = activeSection || (v > -5 ? "" : v > -200 ? "sun" : "twi");
-        const finalKey = key || (v <= 0 ? "surf" : "");
-
-        if (finalKey && finalKey !== lastKey && t - lastSpeakTime > 4) {
-          lastKey = finalKey;
-          lastSpeakTime = t;
-          if (MESSAGES[finalKey]) {
-            speak(MESSAGES[finalKey]);
-          }
+        const k = sec || (v > -5 ? "" : v > -200 ? "sun" : "twi");
+        const kk = k || (v <= 0 ? "surf" : "");
+        if (kk && kk !== lastKey && t - lastSayTime > 4) {
+          lastKey = kk;
+          speak(MESSAGES[kk]);
         }
       }
     };
@@ -344,9 +536,10 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
     gsap.ticker.add(onTick);
 
     return () => {
+      window.removeEventListener("resize", updateSize);
       window.removeEventListener("pointermove", handlePointerMove);
       gsap.ticker.remove(onTick);
-      if (speakTimer) clearTimeout(speakTimer);
+      if (sayTimer) clearTimeout(sayTimer);
     };
   }, [reducedMotion]);
 

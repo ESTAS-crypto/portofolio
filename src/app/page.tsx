@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { LenisProvider, useLenis } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
 import { useNightMode } from "@/hooks/useNightMode";
 import { siteConfig } from "@/data/site";
 import { oceanStore } from "@/lib/oceanStore";
@@ -23,6 +24,8 @@ import Bubbles from "@/components/fx/Bubbles";
 import Buddy from "@/components/fx/Buddy";
 import ReefCanvas from "@/components/fx/ReefCanvas";
 import Creatures from "@/components/fx/Creatures";
+import LightingOverlays from "@/components/fx/LightingOverlays";
+import SmartFavicon from "@/components/fx/SmartFavicon";
 
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
@@ -33,8 +36,8 @@ import Contact from "@/components/sections/Contact";
 import ProjectPortal from "@/components/portal/ProjectPortal";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
-function PortfolioApp() {
-  const reducedMotion = useReducedMotion();
+function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
+  usePerformanceMonitor();
   const isNight = useNightMode();
   const { scrollTo } = useLenis();
 
@@ -165,6 +168,8 @@ function PortfolioApp() {
       <Buddy reducedMotion={reducedMotion} />
       <ReefCanvas reducedMotion={reducedMotion} />
       <Creatures reducedMotion={reducedMotion} />
+      <LightingOverlays reducedMotion={reducedMotion} />
+      <SmartFavicon />
 
       <main>
         <Hero isNight={isNight} reducedMotion={reducedMotion} />
@@ -194,7 +199,7 @@ export default function Home() {
 
   return (
     <LenisProvider reducedMotion={reducedMotion}>
-      <PortfolioApp />
+      <PortfolioApp reducedMotion={reducedMotion} />
     </LenisProvider>
   );
 }

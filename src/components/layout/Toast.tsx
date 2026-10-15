@@ -47,6 +47,32 @@ export default function Toast() {
     };
   }, []);
 
+  // F5: Pengingat mode tenang aktif
+  useEffect(() => {
+    let said = 0;
+    const say = () => {
+      if (!document.documentElement.classList.contains("calm")) return;
+      oceanStore.showToast("Mode tenang aktif: penyelam dan hewan laut disembunyikan. Ketuk ikon ombak untuk menampilkannya.");
+    };
+
+    const timer = setTimeout(() => {
+      if (!said) { said = 1; say(); }
+    }, 1600);
+
+    const onScroll = () => {
+      if (said < 2 && window.scrollY > window.innerHeight * 2.8) {
+        said = 2;
+        say();
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   return (
     <div ref={toastRef} className="toast" role="status" aria-live="polite">
       {text}

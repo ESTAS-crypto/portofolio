@@ -262,6 +262,19 @@ html[data-tod="day"] #hero {
   top: 78%;
   fill: var(--c);
   color: #fff;
+  --sh: clamp(96px, 12vw, 170px);
+}
+
+@media (max-width: 760px) {
+  .tide {
+    --sh: clamp(92px, 30vw, 132px);
+  }
+}
+
+@media (max-height: 520px) {
+  .tide {
+    --sh: clamp(64px, 18vh, 110px);
+  }
 }
 
 .tide .wv {
@@ -1447,6 +1460,100 @@ footer {
   margin: 0 12px 0 6px;
 }
 
+/* F9: Mixer Button & Popup */
+#mixBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#mixBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#mixBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+#mixBtn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mix-pop {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(10, 42, 74, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  min-width: 160px;
+  animation: mixIn 0.25s ease-out;
+}
+
+@keyframes mixIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.mix-pop label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font: 500 0.8rem var(--body);
+  white-space: nowrap;
+}
+
+.mix-pop input[type="range"] {
+  width: 90px;
+  accent-color: #ffd9a0;
+  cursor: pointer;
+}
+
+#calmBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#calmBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#calmBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+#calmBtn[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffd9a0;
+}
+
 /* Kinetic Marquee */
 .kin {
   overflow: hidden;
@@ -2235,6 +2342,23 @@ html[data-tod="night"] #hero::before,
   }
 }
 
+.buddy.sl .bd-say {
+  left: 0;
+  right: auto;
+}
+.buddy.sl .bd-say::after {
+  left: 28px;
+  right: auto;
+}
+.buddy.sr .bd-say {
+  left: auto;
+  right: 0;
+}
+.buddy.sr .bd-say::after {
+  left: auto;
+  right: 28px;
+}
+
 @media (max-height: 520px) {
   .buddy {
     width: clamp(90px, 18vh, 130px);
@@ -2658,5 +2782,754 @@ html[data-tod="night"] #hero::before,
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ==========================================================================
+   SYNC V4 — F1: Sky Gradient & Celestial Orbit
+   ========================================================================== */
+.skyfx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(var(--s1, #4f9fd8), var(--s2, #bfe6fb));
+  pointer-events: none;
+}
+
+.cel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.cel .sun {
+  left: 0 !important;
+  top: 0 !important;
+  right: auto !important;
+}
+
+.sun {
+  margin: calc(clamp(110px, 17vw, 220px) / -2) 0 0 calc(clamp(110px, 17vw, 220px) / -2);
+}
+
+.moon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(90px, 13vw, 170px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin: calc(clamp(90px, 13vw, 170px) / -2) 0 0 calc(clamp(90px, 13vw, 170px) / -2);
+  background: radial-gradient(circle at 35% 35%, #fff 0, #eef3ff 40%, #c6d3f5 68%, rgba(198, 211, 245, 0) 71%);
+  box-shadow: 0 0 70px 10px rgba(190, 210, 255, 0.35);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.moon.mx {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.moon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Override hero colors via CSS custom props from skyEngine */
+#hero .hero-copy {
+  color: var(--hc, #0a2a4a) !important;
+}
+
+#hero .bird {
+  color: var(--bc, #0a2a4a) !important;
+}
+
+#hero .cl {
+  opacity: var(--clo, 0.93) !important;
+}
+
+#hero .sun {
+  background: radial-gradient(circle, #fff 0, var(--sun) 42%, transparent 70%) !important;
+  animation: glow 6s ease-in-out infinite !important;
+}
+
+#hero::before,
+#hero[data-tod='night']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--stars, 0) !important;
+  animation: twk 4s ease-in-out infinite alternate !important;
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 28% 8%, #fff, transparent),
+    radial-gradient(2px 2px at 44% 22%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 63% 12%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 78% 30%, #fff, transparent),
+    radial-gradient(2px 2px at 90% 14%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 8% 40%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 55% 36%, #fff, transparent);
+}
+
+@keyframes twk {
+  to {
+    filter: brightness(0.6);
+  }
+}
+
+/* ==========================================================================
+   SYNC V4 — F2: Time Panel (.todx)
+   ========================================================================== */
+.todx {
+  position: absolute;
+  z-index: 8;
+  top: clamp(84px, 12vh, 120px);
+  left: 7vw;
+  overflow: hidden;
+  border-radius: 26px;
+  background: rgba(10, 42, 74, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  color: #fff;
+  will-change: width, height;
+}
+
+.todx .tod-orb {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+}
+
+.todx.min .tod-orb {
+  left: 5px;
+  top: 5px;
+  animation: orbp 2.6s ease-out infinite;
+}
+
+@keyframes orbp {
+  0% { box-shadow: 0 0 0 0 var(--orbc, rgba(255, 217, 160, 0.7)); }
+  100% { box-shadow: 0 0 0 16px rgba(255, 217, 160, 0); }
+}
+
+.tod-orb {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.08));
+  transition: transform 0.25s;
+}
+
+.tod-orb:hover {
+  transform: scale(1.08);
+}
+
+.tod-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
+  width: 1em;
+  height: 1em;
+  text-align: center;
+  transform: translateY(-2px);
+}
+
+.todx .tod-main {
+  position: absolute;
+  left: 58px;
+  top: 8px;
+  width: min(300px, calc(100vw - 128px));
+  overflow: visible;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tod-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.tod-hd .tod-l {
+  font: 600 0.85rem var(--body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tod-x {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: 700 1.1rem/1 var(--body);
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+.tod-x:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.tod-body {
+  min-width: 0;
+}
+
+#todR {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: linear-gradient(90deg,
+    #0b1236 0%, #3a3f7a 19%, #f0a58c 23%, #8fc3ee 33%,
+    #6fb2e8 50%, #8fc3ee 67%, #ffbf80 74%, #8a4f7e 80%,
+    #0f1740 88%, #0b1236 100%);
+}
+
+#todR::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #0a2a4a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+}
+
+#todR::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #0a2a4a;
+  cursor: grab;
+}
+
+.todx .tod-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  overflow: visible;
+}
+
+.todx .tod-chips .tod-c {
+  width: 100%;
+  text-align: center;
+  padding: 6px 4px;
+}
+
+.tod-c {
+  flex: none;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 99px;
+  padding: 5px 11px;
+  font: 600 0.78rem var(--body);
+  cursor: pointer;
+  transition: background 0.25s, transform 0.2s;
+}
+
+.tod-c:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+
+.tod-c.on {
+  background: #fff;
+  color: var(--ink);
+}
+
+.todx .tod-moon {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  gap: 6px;
+  align-items: center;
+}
+
+.todx .tod-moon .tod-c {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+#mLbl {
+  order: 0;
+  flex: none;
+  text-align: center;
+  font: 600 0.8rem var(--body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.todx .tod-ctl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.todx .tod-ctl .tod-a {
+  width: 100%;
+  text-align: center;
+  padding: 7px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tod-a {
+  border: 0;
+  border-radius: 99px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: 600 0.8rem var(--body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tod-a[aria-pressed='true'],
+.tod-a.on {
+  background: #fff;
+  color: var(--ink);
+}
+
+/* Hero overlay when todx is open on mobile */
+#hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  background: rgba(3, 12, 28, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+
+#hero.todopen::after {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (max-width: 760px) {
+  .todx {
+    left: 4vw;
+    top: 84px;
+  }
+  .todx .tod-main {
+    width: min(300px, calc(100vw - 112px));
+  }
+  .todx .tod-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .todx .tod-moon {
+    flex-wrap: wrap;
+  }
+  #mLbl {
+    order: -1;
+    flex: 1 0 100%;
+    text-align: left;
+  }
+  .todx:not(.min) {
+    background: rgba(8, 32, 60, 0.92);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  }
+  .todx .tod-a {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-height: 520px) {
+  .todx {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tod-play {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   SYNC V4 — F4: Lighting Overlays
+   ========================================================================== */
+#lgW,
+#lgN,
+#shafts {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#lgW {
+  background: linear-gradient(rgb(255, 150, 80), rgba(255, 150, 80, 0) 75%);
+}
+
+#lgN {
+  background: rgb(5, 10, 34);
+}
+
+#shafts {
+  will-change: transform, opacity;
+  transform-origin: var(--lx, 50%) -12%;
+  --lc: 255, 244, 214;
+  background: conic-gradient(
+    from 0deg at var(--lx, 50%) -12%,
+    transparent 0 148deg,
+    rgba(var(--lc), 0) 148deg,
+    rgba(var(--lc), 0.5) 156deg,
+    rgba(var(--lc), 0) 163deg,
+    rgba(var(--lc), 0.32) 170deg,
+    rgba(var(--lc), 0) 177deg,
+    rgba(var(--lc), 0.55) 184deg,
+    rgba(var(--lc), 0) 192deg,
+    rgba(var(--lc), 0.3) 200deg,
+    rgba(var(--lc), 0) 207deg,
+    transparent 207deg
+  );
+  -webkit-mask-image: linear-gradient(#000, transparent 72%);
+  mask-image: linear-gradient(#000, transparent 72%);
+  animation: none;
+  transform: rotate(var(--sa, 0deg));
+}
+
+#lgD,
+#lgT,
+#torch {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#lgD {
+  inset: 0;
+  z-index: 0;
+  background: rgb(2, 8, 26);
+}
+
+#lgT {
+  inset: 0;
+  z-index: 0;
+  mix-blend-mode: soft-light;
+  background: rgb(255, 244, 214);
+}
+
+#torch {
+  left: 0;
+  top: 0;
+  width: 640px;
+  height: 640px;
+  z-index: 0;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle,
+    rgba(200, 235, 255, 0.55) 0,
+    rgba(200, 235, 255, 0.2) 32%,
+    rgba(200, 235, 255, 0) 68%);
+  will-change: transform, opacity;
+}
+
+/* Calm mode indicator dot */
+#calmBtn {
+  position: relative;
+}
+
+#calmBtn[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffd9a0;
+  box-shadow: 0 0 0 2px rgba(10, 42, 74, 0.9);
+}
+
+/* ==========================================================================
+   SYNC V4 — F9: Mixer popup
+   ========================================================================== */
+#mixBtn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+#mixBtn:hover,
+#mixBtn[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#mixBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+#mixPop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: min(230px, 86vw);
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(8, 32, 60, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+
+#mixPop[hidden] {
+  display: none;
+}
+
+#mixPop label {
+  display: grid;
+  gap: 4px;
+  font: 600 0.8rem var(--body);
+}
+
+#mixPop input {
+  width: 100%;
+  accent-color: #ffd9a0;
+  margin: 0;
+}
+
+/* ==========================================================================
+   SYNC V4 — F11: Kapal Nelayan (Ship), Joran Lentur, Penyelam, Kilau & Cipratan
+   ========================================================================== */
+.sp {
+  position: absolute;
+  right: 7%;
+  top: 0;
+  width: calc(var(--sh) * 1.9);
+  height: var(--sh);
+  margin-top: calc(var(--sh) * -0.88);
+  transform-origin: 50% 88%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .sp {
+    right: 12%;
+  }
+}
+
+.tide .sp svg,
+.tide .dvw svg {
+  position: static;
+  display: block;
+  width: 100%;
+  height: 100%;
+  bottom: auto;
+  animation: none;
+  overflow: visible;
+}
+
+.tide svg.cf {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 30px;
+  height: auto;
+  color: #ffd9a0;
+  animation: none;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.sp svg.hl {
+  filter: drop-shadow(0 0 2px rgba(180, 210, 255, calc(var(--stars, 0) * 0.7)));
+}
+
+.sp .lamp {
+  opacity: var(--stars, 0);
+  transition: opacity 0.3s;
+}
+
+.sp .win {
+  opacity: calc(0.35 + var(--stars, 0) * 0.65);
+}
+
+.sp .rod {
+  transform-box: view-box;
+  animation: rods 4s ease-in-out infinite alternate;
+}
+
+@keyframes rods {
+  to {
+    transform: rotate(1.8deg);
+  }
+}
+
+.sp .bob {
+  animation: bobb 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes bobb {
+  to {
+    transform: translateY(2px);
+  }
+}
+
+.dvw {
+  position: absolute;
+  left: 5%;
+  top: calc(var(--sh) * 0.1976);
+  width: calc(var(--sh) * 0.22);
+  height: calc(var(--sh) * 0.366);
+  pointer-events: none;
+}
+
+.dvw.fly {
+  left: 0;
+  top: 0;
+  position: absolute;
+  z-index: 7;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.sbtn {
+  position: absolute;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 6px;
+}
+
+.sbtn:focus-visible {
+  outline: 3px solid #ffd9a0;
+}
+
+.foam {
+  display: none !important;
+}
+
+.tide svg.ln {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: auto;
+  width: 100%;
+  height: 70vh;
+  animation: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tide .ptc {
+  fill: var(--c);
+}
+
+.tide .drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  pointer-events: none;
+}
+
+.tide .erg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 11px;
+  margin: -5px 0 0 -22px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.tide .col {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 64px;
+  margin: -64px 0 0 -7px;
+  background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  border-radius: 50% 50% 0 0;
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.tide canvas.glt {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  pointer-events: none;
+}
+
+.tide canvas.spl {
+  position: absolute;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Calm mode hides ship and water FX */
+.calm .sp,
+.calm .dvw,
+.calm .foam,
+.calm .ln,
+.calm .glt,
+.calm .spl {
+  display: none !important;
+}
+
+/* ==========================================================================
+   SYNC V4 — F5: Calm Mode Toast Enhancement
+   ========================================================================== */
+.calm .toast-calm {
+  display: block;
 }
 

@@ -9,6 +9,7 @@ export interface Threat {
   x: number;
   y: number;
   r: number;
+  mega?: boolean;
 }
 
 export interface OceanState {
