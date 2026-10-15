@@ -176,6 +176,8 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
     let inspectTime = 0;
     let pitch = 0;
     let lampVal = 0;
+    let headRot = 0;
+    let pupilAngle = 0;
 
     const handlePointerMove = (e: PointerEvent) => {
       mouseX = e.clientX;
@@ -447,15 +449,26 @@ export default function Buddy({ reducedMotion = false }: { reducedMotion?: boole
       setRotate(aB, -4 * speed + 6 * Math.sin(phase + 1), 104, 52);
       setRotate(fB, 8 * Math.sin(phase), 124, 60);
 
-      // Tatapan mata & rotasi kepala
-      const lookX = mouseX > -900 && Math.hypot(mouseX - posX, mouseY - posY) < 520 ? mouseX : targetX;
-      const lookY = mouseX > -900 && Math.hypot(mouseX - posX, mouseY - posY) < 520 ? mouseY : targetY;
-      let relAngle = Math.atan2(lookY - posY, (lookX - posX) * dir) - (pitch * Math.PI) / 180;
-      relAngle = Math.atan2(Math.sin(relAngle), Math.cos(relAngle));
+      // Tatapan mata & rotasi kepala: halus dan stabil tanpa getaran / flip 180°
+      const lookDist = mouseX > -900 ? Math.hypot(mouseX - posX, mouseY - posY) : 9999;
+      const lookX = lookDist < 520 ? mouseX : targetX;
+      const lookY = lookDist < 520 ? mouseY : targetY;
 
-      setRotate(head, clamp(relAngle * 57.3 * 0.3, -28, 28), 122, 46);
-      pup.setAttribute("cx", (150 + Math.cos(relAngle) * 1.6).toFixed(2));
-      pup.setAttribute("cy", (38 + Math.sin(relAngle) * 1.6).toFixed(2));
+      // Jarak horizontal searah hadapan (forwardX selalu positif >= 60 agar tidak flip atan2 di -180/180)
+      const forwardX = Math.max(60, (lookX - posX) * dir);
+      const dyLook = lookY - posY;
+      let targetRad = Math.atan2(dyLook, forwardX) - (pitch * Math.PI) / 180;
+      targetRad = Math.atan2(Math.sin(targetRad), Math.cos(targetRad));
+
+      const targetHeadDeg = clamp(targetRad * 57.3 * 0.32, -22, 22);
+      // Damping eksponensial untuk transisi kepala yang luwes dan alami
+      headRot += (targetHeadDeg - headRot) * (1 - Math.exp(-dt * 8));
+      setRotate(head, headRot, 122, 46);
+
+      // Pupil mata melacak secara halus
+      pupilAngle += (targetRad - pupilAngle) * (1 - Math.exp(-dt * 10));
+      pup.setAttribute("cx", (150 + Math.cos(pupilAngle) * 1.6).toFixed(2));
+      pup.setAttribute("cy", (38 + Math.sin(pupilAngle) * 1.6).toFixed(2));
 
       // Kedipan mata
       if (t > nextBlink) {
