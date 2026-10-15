@@ -10,18 +10,17 @@ export interface OceanCreatureConfig {
 }
 
 /**
- * Nilai konfigurasi produksi untuk pemunculan acak Paus dan Megalodon.
- * Tidak memakai mode uji sebagai default.
+ * Konfigurasi pemunculan Paus dan Megalodon (disinkronkan dengan acuan HTML).
  */
 export const PROD_OCEAN_CONFIG: OceanCreatureConfig = {
-  rollMin: 2,
-  rollMax: 10,
+  rollMin: 1,
+  rollMax: 3,
   whaleChance: 0.5,
-  megaChance: 0.1,
-  cooldownMin: 8,
-  cooldownMax: 22,
-  whaleDepth: 150,
-  megaDepth: 400,
+  megaChance: 0.5,
+  cooldownMin: 2,
+  cooldownMax: 5,
+  whaleDepth: 120,
+  megaDepth: 150,
 };
 
 /**
