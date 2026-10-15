@@ -2342,6 +2342,23 @@ html[data-tod="night"] #hero::before,
   }
 }
 
+.buddy.sl .bd-say {
+  left: 0;
+  right: auto;
+}
+.buddy.sl .bd-say::after {
+  left: 28px;
+  right: auto;
+}
+.buddy.sr .bd-say {
+  left: auto;
+  right: 0;
+}
+.buddy.sr .bd-say::after {
+  left: auto;
+  right: 28px;
+}
+
 @media (max-height: 520px) {
   .buddy {
     width: clamp(90px, 18vh, 130px);
