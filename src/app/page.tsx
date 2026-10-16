@@ -64,6 +64,11 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
     setDexOpen(true);
   };
 
+  const handleDiscoveryChange = useCallback((count: number, hasNew: boolean) => {
+    setDexCount(count);
+    setHasNewDiscovery(hasNew);
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || summaryOpen || dexOpen || portalOpen) return;
@@ -242,10 +247,7 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
         isOpen={dexOpen}
         onClose={() => setDexOpen(false)}
         openerElement={dexOpener}
-        onDiscoveryChange={(count, hasNew) => {
-          setDexCount(count);
-          setHasNewDiscovery(hasNew);
-        }}
+        onDiscoveryChange={handleDiscoveryChange}
       />
 
       <footer>{siteConfig.footerText}</footer>

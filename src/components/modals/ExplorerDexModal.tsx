@@ -47,6 +47,11 @@ export default function ExplorerDexModal({
 
   const [discovered, setDiscovered] = useState<string[]>([]);
   const hasNewRef = useRef(false);
+  const onDiscoveryChangeRef = useRef(onDiscoveryChange);
+
+  useEffect(() => {
+    onDiscoveryChangeRef.current = onDiscoveryChange;
+  });
 
   // Sync with localStorage on client mount
   useEffect(() => {
@@ -55,8 +60,12 @@ export default function ExplorerDexModal({
       saved = JSON.parse(localStorage.getItem("dex") || "[]");
     } catch (_) {}
     setDiscovered(saved);
-    onDiscoveryChange?.(saved.length, false);
-  }, [onDiscoveryChange]);
+  }, []);
+
+  // Safely notify parent when discovered changes, outside of any render phase
+  useEffect(() => {
+    onDiscoveryChangeRef.current?.(discovered.length, hasNewRef.current);
+  }, [discovered]);
 
   const addDiscovery = useCallback(
     (id: string) => {
@@ -69,11 +78,10 @@ export default function ExplorerDexModal({
         if (!isOpen) {
           hasNewRef.current = true;
         }
-        onDiscoveryChange?.(next.length, hasNewRef.current);
         return next;
       });
     },
-    [isOpen, onDiscoveryChange]
+    [isOpen]
   );
 
   // Global listeners for oceanic discoveries
