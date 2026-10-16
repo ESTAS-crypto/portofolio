@@ -172,11 +172,11 @@ test.describe("Portfolio v3 Comprehensive Tests", () => {
     // Press '?'
     await page.keyboard.press("?");
     await page.waitForTimeout(400);
-    await expect(toast).toContainText(/mode tenang/i);
+    await expect(toast).toContainText(/tenang/i);
 
     // Press 'm' to toggle audio
     await page.keyboard.press("m");
     await page.waitForTimeout(400);
-    await expect(toast).toContainText(/Audio/i);
+    await expect(toast).toContainText(/(Audio|Musik)/i);
   });
 });

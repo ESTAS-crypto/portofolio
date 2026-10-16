@@ -4470,7 +4470,7 @@ i.tb {
 .msg-bottle-overlay {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 9999;
   background: rgba(3, 7, 18, 0.78);
   backdrop-filter: blur(10px);
   display: flex;
