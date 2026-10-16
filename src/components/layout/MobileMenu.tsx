@@ -11,6 +11,9 @@ interface MobileMenuProps {
   onNavigate: (id: string) => void;
   burgerRect: DOMRect | null;
   reducedMotion?: boolean;
+  onOpenSummary?: () => void;
+  onOpenDex?: () => void;
+  dexCount?: number;
 }
 
 export default function MobileMenu({
@@ -19,6 +22,9 @@ export default function MobileMenu({
   onNavigate,
   burgerRect,
   reducedMotion = false,
+  onOpenSummary,
+  onOpenDex,
+  dexCount = 0,
 }: MobileMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const { stop, start } = useLenis();
@@ -50,7 +56,7 @@ export default function MobileMenu({
         { clipPath: `circle(150vmax at ${origin})`, duration: 0.8 * D, ease: "power3.inOut" }
       );
 
-      const items = el.querySelectorAll("a, small");
+      const items = el.querySelectorAll("a, button, small");
       gsap.fromTo(
         items,
         { y: 60, opacity: 0 },
@@ -90,6 +96,32 @@ export default function MobileMenu({
     });
   };
 
+  const handleActionClick = (e: React.MouseEvent, act: "sum" | "dex") => {
+    if (!reducedMotion && gsap) {
+      for (let i = 0; i < 8; i++) {
+        const d = document.createElement("i");
+        const s = 5 + Math.random() * 9;
+        d.className = "tb";
+        d.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${s}px;height:${s}px`;
+        document.body.appendChild(d);
+        gsap.to(d, {
+          x: (Math.random() - 0.5) * 110,
+          y: (Math.random() - 0.3) * 70,
+          scale: 1.5,
+          opacity: 0,
+          duration: 0.9 + Math.random() * 0.6,
+          ease: "power2.out",
+          onComplete: () => d.remove(),
+        });
+      }
+    }
+    onClose();
+    setTimeout(() => {
+      if (act === "sum") onOpenSummary?.();
+      else onOpenDex?.();
+    }, 450);
+  };
+
   return (
     <div id="menu" ref={menuRef} hidden>
       <a href="#about" onClick={(e) => handleLinkClick(e, "about")}>
@@ -101,6 +133,12 @@ export default function MobileMenu({
       <a href="#deep" onClick={(e) => handleLinkClick(e, "deep")}>
         Jelajah
       </a>
+      <button type="button" data-act="sum" onClick={(e) => handleActionClick(e, "sum")}>
+        Ringkasan
+      </button>
+      <button type="button" data-act="dex" onClick={(e) => handleActionClick(e, "dex")}>
+        Koleksi <em id="dexM">{dexCount}/16</em>
+      </button>
       <a href="#contact" onClick={(e) => handleLinkClick(e, "contact")}>
         Hubungi
       </a>

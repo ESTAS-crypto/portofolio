@@ -8,9 +8,20 @@ import MobileMenu from "./MobileMenu";
 interface NavProps {
   onNavigate: (id: string) => void;
   reducedMotion?: boolean;
+  onOpenSummary?: (opener?: HTMLElement | null) => void;
+  onOpenDex?: (opener?: HTMLElement | null) => void;
+  dexCount?: number;
+  hasNewDiscovery?: boolean;
 }
 
-export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
+export default function Nav({
+  onNavigate,
+  reducedMotion = false,
+  onOpenSummary,
+  onOpenDex,
+  dexCount = 0,
+  hasNewDiscovery = false,
+}: NavProps) {
   const navRef = useRef<HTMLDivElement>(null);
   const linksWrapRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLElement>(null);
@@ -237,6 +248,24 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
           ))}
         </div>
 
+        <button
+          type="button"
+          id="sumBtn"
+          className="navx"
+          onClick={(e) => onOpenSummary?.(e.currentTarget)}
+        >
+          Ringkasan
+        </button>
+
+        <button
+          type="button"
+          id="dexBtn"
+          className={`navx${hasNewDiscovery ? " new" : ""}`}
+          onClick={(e) => onOpenDex?.(e.currentTarget)}
+        >
+          Koleksi <i id="dexC">{dexCount}/16</i>
+        </button>
+
         <a
           className="cta"
           href="#contact"
@@ -248,7 +277,7 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
 
         <button
           ref={burgerRef}
-          className={`burger ${isMenuOpen ? "on" : ""}`}
+          className={`burger ${isMenuOpen ? "on" : ""} ${hasNewDiscovery ? "dexnew" : ""}`}
           id="burger"
           type="button"
           aria-label={isMenuOpen ? "Tutup menu" : "Buka menu"}
@@ -267,6 +296,9 @@ export default function Nav({ onNavigate, reducedMotion = false }: NavProps) {
         onNavigate={onNavigate}
         burgerRect={burgerRect}
         reducedMotion={reducedMotion}
+        onOpenSummary={() => onOpenSummary?.(burgerRef.current)}
+        onOpenDex={() => onOpenDex?.(burgerRef.current)}
+        dexCount={dexCount}
       />
     </>
   );
