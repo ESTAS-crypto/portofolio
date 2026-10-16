@@ -16,7 +16,11 @@ test.describe("F14-F23 Features Verification", () => {
     const weatherCanvas = page.locator("#wx");
     await expect(weatherCanvas).toBeAttached();
 
-    // Verify TimePanel season row exists inside #todx
+    // Verify TimePanel exists and open it if minimized
+    if (await page.locator("#todx.min").isVisible()) {
+      await page.locator(".tod-orb").click();
+      await page.waitForTimeout(600);
+    }
     const seasonRow = page.locator("#todx .tod-ssn");
     await expect(seasonRow).toBeVisible();
 

@@ -51,6 +51,10 @@ const HINT: Partial<Record<SeasonName, string>> = {
   semi: "gerakkan kursor meniup kelopak",
 };
 
+const SUN_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor" /><line x1="12" y1="2" x2="12" y2="4.5" /><line x1="12" y1="19.5" x2="12" y2="22" /><line x1="2" y1="12" x2="4.5" y2="12" /><line x1="19.5" y1="12" x2="22" y2="12" /><line x1="4.93" y1="4.93" x2="6.7" y2="6.7" /><line x1="17.3" y1="17.3" x2="19.07" y2="19.07" /><line x1="4.93" y1="19.07" x2="6.7" y2="17.3" /><line x1="17.3" y1="6.7" x2="19.07" y2="4.93" /></svg>`;
+
+const MOON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>`;
+
 export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const ref = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -62,7 +66,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const timeChipsRef = useRef<HTMLDivElement>(null);
   const twRef = useRef<gsap.core.Timeline | null>(null);
 
-  const [min, setMin] = useState(false);
+  const [min, setMin] = useState(true);
   const [auto, setAuto] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [currentSeason, setCurrentSeason] = useState<SeasonName>("cerah");
@@ -70,7 +74,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const [isSurabaya, setIsSurabaya] = useState(false);
   const driveRef = useRef<gsap.core.Tween | null>(null);
   const touchedRef = useRef(false);
-  const lastIcRef = useRef<string>("☀");
+  const lastIcRef = useRef<string>("");
   const lastDimsRef = useRef({ w: 372, h: 360 });
 
   useEffect(() => {
@@ -140,9 +144,10 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       label.textContent = skyEngine.sky.label;
       slider.value = String(Math.round(skyEngine.sky.hour * 60));
       if (icon) {
-        if (skyEngine.sky.icon !== lastIcRef.current) {
-          lastIcRef.current = skyEngine.sky.icon;
-          icon.textContent = skyEngine.sky.icon;
+        const nextSvg = skyEngine.sky.isNight ? MOON_SVG : SUN_SVG;
+        if (nextSvg !== lastIcRef.current) {
+          lastIcRef.current = nextSvg;
+          icon.innerHTML = nextSvg;
           if (gsap && !reducedMotion) {
             gsap.fromTo(
               icon,
@@ -150,8 +155,6 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
               { rotate: 0, scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }
             );
           }
-        } else {
-          icon.textContent = skyEngine.sky.icon;
         }
       }
       if (moonLabel) {
@@ -179,8 +182,9 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     label.textContent = skyEngine.sky.label;
     slider.value = String(Math.round(skyEngine.sky.hour * 60));
     if (icon) {
-      lastIcRef.current = skyEngine.sky.icon;
-      icon.textContent = skyEngine.sky.icon;
+      const initialSvg = skyEngine.sky.isNight ? MOON_SVG : SUN_SVG;
+      lastIcRef.current = initialSvg;
+      icon.innerHTML = initialSvg;
     }
     if (moonLabel) {
       moonLabel.textContent =
@@ -296,7 +300,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     [reducedMotion, getDims]
   );
 
-  // ─── Initial mount & Auto-minimize ────────────────────
+  // ─── Initial mount & Refresh State ────────────────────
   useEffect(() => {
     const T = ref.current;
     const main = mainRef.current;
@@ -308,26 +312,15 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     } catch {}
 
     const isMob = window.matchMedia("(max-width:760px),(max-height:520px)").matches;
-    const shouldMin = stored === "1" || isMob;
+    // By default on page load / refresh, always start MINIMIZED as a round button!
+    const shouldOpen = stored === "0" && !isMob;
 
-    if (shouldMin) {
-      doSetMin(true, true, false);
+    if (shouldOpen) {
+      doSetMin(false, true, false);
     } else {
-      const s = getDims();
-      T.style.width = s.w + "px";
-      T.style.height = s.h + "px";
-      T.style.borderRadius = "26px";
-      main.style.opacity = "1";
-      main.style.visibility = "visible";
-
-      if (stored === null) {
-        const timer = setTimeout(() => {
-          if (!touchedRef.current) doSetMin(true, false, false);
-        }, 6500);
-        return () => clearTimeout(timer);
-      }
+      doSetMin(true, true, false);
     }
-  }, [doSetMin, getDims]);
+  }, [doSetMin]);
 
   // ─── Resize listener ──────────────────────────────────
   useEffect(() => {
@@ -506,28 +499,37 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   return (
     <div
       ref={ref}
-      className="todx"
+      className="todx min"
       id="todx"
-      style={{ willChange: "width,height" }}
+      style={{ willChange: "width,height,border-radius" }}
     >
       <button
         ref={orbRef}
         type="button"
         className="tod-orb"
-        aria-expanded="true"
-        aria-label="Kecilkan panel waktu"
+        aria-expanded={!min}
+        aria-label={min ? "Buka panel waktu" : "Kecilkan panel waktu"}
         onClick={() => {
           touchedRef.current = true;
           audioEngine.sf[min ? "open" : "close"]();
           doSetMin(!min, false, true);
         }}
       >
-        <span ref={iconRef} className="tod-ic" id="todIc" aria-hidden="true" suppressHydrationWarning>
-          ☀
-        </span>
+        <span
+          ref={iconRef}
+          className="tod-ic"
+          id="todIc"
+          aria-hidden="true"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: SUN_SVG }}
+        />
       </button>
 
-      <div ref={mainRef} className="tod-main">
+      <div
+        ref={mainRef}
+        className="tod-main"
+        style={{ opacity: 0, visibility: "hidden" }}
+      >
         {/* Header */}
         <div className="tod-hd">
           <span ref={labelRef} className="tod-l" id="todL" suppressHydrationWarning>
