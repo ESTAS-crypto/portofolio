@@ -2969,6 +2969,20 @@ html[data-tod="night"] #hero::before,
   border: 1px solid var(--line);
   color: #fff;
   will-change: width, height;
+  width: 372px;
+  height: 350px;
+}
+
+.todx.min {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 28px !important;
+}
+
+.todx.min .tod-main {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .todx .tod-orb {
@@ -2978,8 +2992,8 @@ html[data-tod="night"] #hero::before,
 }
 
 .todx.min .tod-orb {
-  left: 5px;
-  top: 5px;
+  left: 6px;
+  top: 6px;
   animation: orbp 2.6s ease-out infinite;
 }
 

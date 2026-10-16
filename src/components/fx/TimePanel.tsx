@@ -10,6 +10,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { gsap } from "@/lib/gsap";
 import { skyEngine } from "@/lib/skyTimeEngine";
 import { oceanStore, SeasonName, WeatherMode } from "@/lib/oceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 interface TimePanelProps {
   reducedMotion?: boolean;
@@ -40,6 +41,14 @@ const LB: Record<SeasonName, string> = {
   salju: "Salju",
   gugur: "Gugur",
   semi: "Semi",
+};
+
+const HINT: Partial<Record<SeasonName, string>> = {
+  kemarau: "ketuk langit untuk kilatan",
+  hujan: "ketuk langit untuk kilat",
+  salju: "gerakkan kursor meniup salju",
+  gugur: "gerakkan kursor meniup daun",
+  semi: "gerakkan kursor meniup kelopak",
 };
 
 export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
@@ -90,10 +99,22 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   }, []);
 
   const handleSeasonSelect = useCallback((s: WeatherMode) => {
+    touchedRef.current = true;
     setWeatherMode(s);
     oceanStore.setWeatherMode(s);
+    try {
+      localStorage.setItem("season", s);
+    } catch {}
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("ocean:set-mode", { detail: s }));
+    }
+    if (s === "auto") {
+      oceanStore.toast("Cuaca otomatis", { p: 0 });
+      audioEngine.seasonSfx("cerah");
+    } else {
+      const h = HINT[s as SeasonName];
+      oceanStore.toast(`${LB[s as SeasonName]}${h ? " · " + h : ""}`, { p: 0 });
+      audioEngine.seasonSfx(s as SeasonName);
     }
   }, []);
 
@@ -124,9 +145,13 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           (skyEngine.moon.eclipse ? " · Gerhana" : "");
       }
       if (T) {
-        T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
+        T.style.setProperty(
+          "--orbc",
+          skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
+        );
       }
     });
+
     // Initial render
     label.textContent = skyEngine.sky.label;
     slider.value = String(Math.round(skyEngine.sky.hour * 60));
@@ -139,10 +164,23 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         (skyEngine.moon.eclipse ? " · Gerhana" : "");
     }
     if (T) {
-      T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
+      T.style.setProperty(
+        "--orbc",
+        skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
+      );
     }
 
     return unsub;
+  }, []);
+
+  // ─── Dimensions & Fit ─────────────────────────────────
+  const getDims = useCallback(() => {
+    const main = mainRef.current;
+    if (!main) return { w: 372, h: 360 };
+    return {
+      w: (main.offsetWidth || 300) + 72,
+      h: (main.offsetHeight || 330) + 18,
+    };
   }, []);
 
   // ─── Minimize / Maximize ──────────────────────────────
@@ -163,51 +201,136 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         v ? "Buka panel waktu" : "Kecilkan panel waktu"
       );
 
+      const s = getDims();
+
       if (instant || !gsap || reducedMotion) {
-        T.style.width = v ? "56px" : "";
-        T.style.height = v ? "56px" : "";
-        T.style.borderRadius = v ? "28px" : "26px";
+        T.style.width = (v ? 56 : s.w) + "px";
+        T.style.height = (v ? 56 : s.h) + "px";
+        T.style.borderRadius = (v ? 28 : 26) + "px";
         main.style.opacity = v ? "0" : "1";
         main.style.visibility = v ? "hidden" : "visible";
       } else if (v) {
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
         tw.to(main, { opacity: 0, x: -12, duration: 0.22, ease: "power2.in" }, 0);
         tw.to(T, { width: 56, height: 56, borderRadius: 28, duration: 0.55 }, 0.05);
-        tw.add(() => { main.style.visibility = "hidden"; }, 0.3);
-        tw.fromTo(orb, { scale: 1 }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut" }, 0.45);
+        tw.add(() => {
+          main.style.visibility = "hidden";
+        }, 0.3);
+        tw.fromTo(
+          orb,
+          { scale: 1 },
+          { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut" },
+          0.45
+        );
         twRef.current = tw;
       } else {
         main.style.visibility = "visible";
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
-        // Take snapshot of desired dimensions
-        const dims = { w: main.offsetWidth + 72, h: main.offsetHeight + 18 };
-        tw.to(T, { width: dims.w, height: dims.h, borderRadius: 26, duration: 0.55 }, 0);
-        tw.fromTo(main, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 0.18);
-        tw.from(main.children, { y: 8, opacity: 0, stagger: 0.06, duration: 0.35, ease: "power2.out" }, 0.22);
+        tw.to(T, { width: s.w, height: s.h, borderRadius: 26, duration: 0.55 }, 0);
+        tw.fromTo(
+          main,
+          { opacity: 0, x: -12 },
+          { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" },
+          0.18
+        );
+        tw.from(
+          main.children,
+          { y: 8, opacity: 0, stagger: 0.06, duration: 0.35, ease: "power2.out" },
+          0.22
+        );
         twRef.current = tw;
       }
 
       if (save) {
-        try { localStorage.setItem("todMin", v ? "1" : "0"); } catch { /* ignore */ }
+        try {
+          localStorage.setItem("todMin", v ? "1" : "0");
+        } catch {
+          /* ignore */
+        }
       }
     },
-    [reducedMotion]
+    [reducedMotion, getDims]
   );
 
-  // ─── Auto-minimize setelah 6.5 detik ──────────────────
+  // ─── Initial mount & Auto-minimize ────────────────────
   useEffect(() => {
-    let stored: string | null = null;
-    try { stored = localStorage.getItem("todMin"); } catch { /* ignore */ }
+    const T = ref.current;
+    const main = mainRef.current;
+    if (!T || !main) return;
 
-    if (stored === "1" || matchMedia("(max-width:760px),(max-height:520px)").matches) {
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem("todMin");
+    } catch {}
+
+    const isMob = window.matchMedia("(max-width:760px),(max-height:520px)").matches;
+    const shouldMin = stored === "1" || isMob;
+
+    if (shouldMin) {
       doSetMin(true, true, false);
-    } else if (stored === null) {
-      const timer = setTimeout(() => {
-        if (!touchedRef.current) doSetMin(true, false, false);
-      }, 6500);
-      return () => clearTimeout(timer);
+    } else {
+      const s = getDims();
+      T.style.width = s.w + "px";
+      T.style.height = s.h + "px";
+      T.style.borderRadius = "26px";
+      main.style.opacity = "1";
+      main.style.visibility = "visible";
+
+      if (stored === null) {
+        const timer = setTimeout(() => {
+          if (!touchedRef.current) doSetMin(true, false, false);
+        }, 6500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [doSetMin]);
+  }, [doSetMin, getDims]);
+
+  // ─── Resize listener ──────────────────────────────────
+  useEffect(() => {
+    const handleResize = () => {
+      if (min) return;
+      const T = ref.current;
+      if (!T) return;
+      const s = getDims();
+      T.style.width = s.w + "px";
+      T.style.height = s.h + "px";
+    };
+    window.addEventListener("resize", handleResize);
+    if (document.fonts) document.fonts.ready.then(handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [min, getDims]);
+
+  // ─── Mobile backdrop, outside tap, and scroll close ───
+  useEffect(() => {
+    const hero = document.getElementById("hero");
+    const mob = window.matchMedia("(max-width:760px)");
+
+    const sync = () => {
+      if (hero) hero.classList.toggle("todopen", mob.matches && !min);
+    };
+    sync();
+
+    const onPointerDown = (e: PointerEvent) => {
+      const T = ref.current;
+      if (!T || !mob.matches || min || T.contains(e.target as Node)) return;
+      doSetMin(true, false, true);
+    };
+
+    const onScroll = () => {
+      if (mob.matches && window.scrollY > 40 && !min) {
+        doSetMin(true, false, true);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      if (hero) hero.classList.remove("todopen");
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [min, doSetMin]);
 
   // ─── Fade saat scroll ─────────────────────────────────
   useEffect(() => {
