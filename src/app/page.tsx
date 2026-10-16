@@ -34,6 +34,8 @@ import Work from "@/components/sections/Work";
 import Deep from "@/components/sections/Deep";
 import Contact from "@/components/sections/Contact";
 import ProjectPortal from "@/components/portal/ProjectPortal";
+import RecruiterSummaryModal from "@/components/modals/RecruiterSummaryModal";
+import ExplorerDexModal from "@/components/modals/ExplorerDexModal";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
@@ -44,6 +46,45 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
   const [portalOpen, setPortalOpen] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [portalTriggerElement, setPortalTriggerElement] = useState<HTMLElement | null>(null);
+
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [dexOpen, setDexOpen] = useState(false);
+  const [summaryOpener, setSummaryOpener] = useState<HTMLElement | null>(null);
+  const [dexOpener, setDexOpener] = useState<HTMLElement | null>(null);
+  const [dexCount, setDexCount] = useState(0);
+  const [hasNewDiscovery, setHasNewDiscovery] = useState(false);
+
+  const handleOpenSummary = (opener?: HTMLElement | null) => {
+    setSummaryOpener(opener || null);
+    setSummaryOpen(true);
+  };
+
+  const handleOpenDex = (opener?: HTMLElement | null) => {
+    setDexOpener(opener || null);
+    setDexOpen(true);
+  };
+
+  const handleDiscoveryChange = useCallback((count: number, hasNew: boolean) => {
+    setDexCount(count);
+    setHasNewDiscovery(hasNew);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || summaryOpen || dexOpen || portalOpen) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) return;
+
+      const k = e.key.toLowerCase();
+      if (k === "r") {
+        setSummaryOpen(true);
+      } else if (k === "k") {
+        setDexOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [summaryOpen, dexOpen, portalOpen]);
 
   // Single Ocean Loop: menghitung kedalaman SEKALI per frame dan membagikannya ke semua modul
   useEffect(() => {
@@ -159,7 +200,14 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
       <ScrollProgress reducedMotion={reducedMotion} />
       <Cursor reducedMotion={reducedMotion} />
       <SkipLink />
-      <Nav onNavigate={handleNavigate} reducedMotion={reducedMotion} />
+      <Nav
+        onNavigate={handleNavigate}
+        reducedMotion={reducedMotion}
+        onOpenSummary={handleOpenSummary}
+        onOpenDex={handleOpenDex}
+        dexCount={dexCount}
+        hasNewDiscovery={hasNewDiscovery}
+      />
       <Gauge onNavigate={handleNavigate} reducedMotion={reducedMotion} />
       <AudioControl reducedMotion={reducedMotion} />
       <ScrollToTop onNavigate={handleNavigate} reducedMotion={reducedMotion} />
@@ -187,6 +235,19 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
         onClose={handleCloseProject}
         onNavigateProject={setActiveProjectIndex}
         reducedMotion={reducedMotion}
+      />
+
+      <RecruiterSummaryModal
+        isOpen={summaryOpen}
+        onClose={() => setSummaryOpen(false)}
+        openerElement={summaryOpener}
+      />
+
+      <ExplorerDexModal
+        isOpen={dexOpen}
+        onClose={() => setDexOpen(false)}
+        openerElement={dexOpener}
+        onDiscoveryChange={handleDiscoveryChange}
       />
 
       <footer>{siteConfig.footerText}</footer>

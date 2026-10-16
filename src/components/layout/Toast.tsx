@@ -1,66 +1,70 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap";
-import { oceanStore } from "@/lib/oceanStore";
+import { oceanStore, ToastOptions } from "@/lib/oceanStore";
 
-export function showToast(message: string) {
-  oceanStore.showToast(message);
+export function showToast(message: string, options?: ToastOptions) {
+  oceanStore.toast(message, options);
+}
+
+export function toast(message: string, options?: ToastOptions) {
+  oceanStore.toast(message, options);
 }
 
 export default function Toast() {
-  const toastRef = useRef<HTMLDivElement>(null);
   const [text, setText] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const trigger = (msg: string) => {
+    const handleTrigger = (msg: string, duration: number) => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
       setText(msg);
-      const el = toastRef.current;
-      if (!el) return;
+      setIsOpen(true);
 
-      gsap.killTweensOf(el);
-      gsap.fromTo(
-        el,
-        { y: 20, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.4,
-          onComplete: () => {
-            gsap.to(el, { opacity: 0, y: 10, delay: 2.2, duration: 0.4 });
-          },
-        }
-      );
+      hideTimerRef.current = setTimeout(() => {
+        setIsOpen(false);
+      }, duration);
     };
 
     const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      trigger(customEvent.detail);
+      const customEvent = e as CustomEvent<string | { message: string; p?: number }>;
+      if (typeof customEvent.detail === "string") {
+        oceanStore.toast(customEvent.detail);
+      } else if (customEvent.detail && typeof customEvent.detail.message === "string") {
+        oceanStore.toast(customEvent.detail.message, { p: customEvent.detail.p });
+      }
     };
 
     window.addEventListener("app:toast", handleCustomEvent);
-    const unsub = oceanStore.onToast(trigger);
+    const unsub = oceanStore.onToast(handleTrigger);
 
     return () => {
       window.removeEventListener("app:toast", handleCustomEvent);
       unsub();
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
   }, []);
 
-  // F5: Pengingat mode tenang aktif
+  // F5: Pengingat mode tenang aktif (p: 1, sekali saat muat dan sekali saat melewati ~120m)
   useEffect(() => {
     let said = 0;
     const say = () => {
       if (!document.documentElement.classList.contains("calm")) return;
-      oceanStore.showToast("Mode tenang aktif: penyelam dan hewan laut disembunyikan. Ketuk ikon ombak untuk menampilkannya.");
+      oceanStore.toast("Mode tenang aktif: makhluk laut disembunyikan", { p: 1 });
     };
 
     const timer = setTimeout(() => {
-      if (!said) { said = 1; say(); }
+      if (!said) {
+        said = 1;
+        say();
+      }
     }, 1600);
 
     const onScroll = () => {
-      if (said < 2 && window.scrollY > window.innerHeight * 2.8) {
+      if (said < 2 && oceanStore.getUnderwaterDepth() > 120) {
         said = 2;
         say();
       }
@@ -74,8 +78,14 @@ export default function Toast() {
   }, []);
 
   return (
-    <div ref={toastRef} className="toast" role="status" aria-live="polite">
+    <div
+      className={`toast ${isOpen ? "on" : ""}`}
+      role="status"
+      aria-live="polite"
+    >
       {text}
     </div>
   );
 }
+
+export { Toast as ToastHost };

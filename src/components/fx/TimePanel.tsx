@@ -9,6 +9,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { gsap } from "@/lib/gsap";
 import { skyEngine } from "@/lib/skyTimeEngine";
+import { oceanStore, SeasonName, WeatherMode } from "@/lib/oceanStore";
+import { audioEngine } from "@/lib/audioEngine";
 
 interface TimePanelProps {
   reducedMotion?: boolean;
@@ -23,6 +25,36 @@ const PRESETS: [string, number][] = [
   ["Malam", 22],
 ];
 
+const SEASONS: { id: SeasonName; label: string }[] = [
+  { id: "cerah", label: "Cerah" },
+  { id: "kemarau", label: "Kemarau" },
+  { id: "hujan", label: "Hujan" },
+  { id: "salju", label: "Salju" },
+  { id: "gugur", label: "Gugur" },
+  { id: "semi", label: "Semi" },
+];
+
+const LB: Record<SeasonName, string> = {
+  cerah: "Cerah",
+  kemarau: "Kemarau",
+  hujan: "Hujan",
+  salju: "Salju",
+  gugur: "Gugur",
+  semi: "Semi",
+};
+
+const HINT: Partial<Record<SeasonName, string>> = {
+  kemarau: "ketuk langit untuk kilatan",
+  hujan: "ketuk langit untuk kilat",
+  salju: "gerakkan kursor meniup salju",
+  gugur: "gerakkan kursor meniup daun",
+  semi: "gerakkan kursor meniup kelopak",
+};
+
+const SUN_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor" /><line x1="12" y1="2" x2="12" y2="4.5" /><line x1="12" y1="19.5" x2="12" y2="22" /><line x1="2" y1="12" x2="4.5" y2="12" /><line x1="19.5" y1="12" x2="22" y2="12" /><line x1="4.93" y1="4.93" x2="6.7" y2="6.7" /><line x1="17.3" y1="17.3" x2="19.07" y2="19.07" /><line x1="4.93" y1="19.07" x2="6.7" y2="17.3" /><line x1="17.3" y1="6.7" x2="19.07" y2="4.93" /></svg>`;
+
+const MOON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>`;
+
 export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const ref = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -31,13 +63,67 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const moonLabelRef = useRef<HTMLSpanElement>(null);
   const iconRef = useRef<HTMLSpanElement>(null);
   const orbRef = useRef<HTMLButtonElement>(null);
+  const timeChipsRef = useRef<HTMLDivElement>(null);
   const twRef = useRef<gsap.core.Timeline | null>(null);
 
-  const [min, setMin] = useState(false);
+  const [min, setMin] = useState(true);
   const [auto, setAuto] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<SeasonName>("cerah");
+  const [weatherMode, setWeatherMode] = useState<WeatherMode>("auto");
+  const [isSurabaya, setIsSurabaya] = useState(false);
   const driveRef = useRef<gsap.core.Tween | null>(null);
   const touchedRef = useRef(false);
+  const lastIcRef = useRef<string>("");
+  const lastDimsRef = useRef({ w: 372, h: 360 });
+
+  useEffect(() => {
+    setCurrentSeason(oceanStore.getSeason());
+    setWeatherMode(oceanStore.getWeatherMode());
+
+    const unsub = oceanStore.subscribe((state) => {
+      setCurrentSeason(state.season);
+      setWeatherMode(state.weatherMode);
+    });
+
+    const onSeasonEv = (e: Event) => {
+      const s = (e as CustomEvent<SeasonName>).detail;
+      if (s) setCurrentSeason(s);
+    };
+
+    const onWeatherEv = () => {
+      setIsSurabaya(true);
+    };
+
+    window.addEventListener("ocean:season", onSeasonEv);
+    window.addEventListener("ocean:weather-update", onWeatherEv);
+
+    return () => {
+      unsub();
+      window.removeEventListener("ocean:season", onSeasonEv);
+      window.removeEventListener("ocean:weather-update", onWeatherEv);
+    };
+  }, []);
+
+  const handleSeasonSelect = useCallback((s: WeatherMode) => {
+    touchedRef.current = true;
+    setWeatherMode(s);
+    oceanStore.setWeatherMode(s);
+    try {
+      localStorage.setItem("season", s);
+    } catch {}
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ocean:set-mode", { detail: s }));
+    }
+    if (s === "auto") {
+      oceanStore.toast("Cuaca otomatis", { p: 0 });
+      audioEngine.seasonSfx("cerah");
+    } else {
+      const h = HINT[s as SeasonName];
+      oceanStore.toast(`${LB[s as SeasonName]}${h ? " · " + h : ""}`, { p: 0 });
+      audioEngine.seasonSfx(s as SeasonName);
+    }
+  }, []);
 
   // ─── Sinkron awal ────────────────────────────────────
   useEffect(() => {
@@ -58,7 +144,18 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       label.textContent = skyEngine.sky.label;
       slider.value = String(Math.round(skyEngine.sky.hour * 60));
       if (icon) {
-        icon.textContent = skyEngine.sky.icon;
+        const nextSvg = skyEngine.sky.isNight ? MOON_SVG : SUN_SVG;
+        if (nextSvg !== lastIcRef.current) {
+          lastIcRef.current = nextSvg;
+          icon.innerHTML = nextSvg;
+          if (gsap && !reducedMotion) {
+            gsap.fromTo(
+              icon,
+              { rotate: -90, scale: 0.4, opacity: 0 },
+              { rotate: 0, scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }
+            );
+          }
+        }
       }
       if (moonLabel) {
         moonLabel.textContent =
@@ -66,14 +163,28 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           (skyEngine.moon.eclipse ? " · Gerhana" : "");
       }
       if (T) {
-        T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
+        T.style.setProperty(
+          "--orbc",
+          skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
+        );
+      }
+      if (timeChipsRef.current) {
+        const ph = skyEngine.sky.phase;
+        const chips = timeChipsRef.current.children;
+        for (let i = 0; i < chips.length; i++) {
+          const c = chips[i] as HTMLElement;
+          c.classList.toggle("on", c.dataset.n === ph);
+        }
       }
     });
+
     // Initial render
     label.textContent = skyEngine.sky.label;
     slider.value = String(Math.round(skyEngine.sky.hour * 60));
     if (icon) {
-      icon.textContent = skyEngine.sky.icon;
+      const initialSvg = skyEngine.sky.isNight ? MOON_SVG : SUN_SVG;
+      lastIcRef.current = initialSvg;
+      icon.innerHTML = initialSvg;
     }
     if (moonLabel) {
       moonLabel.textContent =
@@ -81,10 +192,33 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         (skyEngine.moon.eclipse ? " · Gerhana" : "");
     }
     if (T) {
-      T.style.setProperty("--orbc", skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)");
+      T.style.setProperty(
+        "--orbc",
+        skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
+      );
+    }
+    if (timeChipsRef.current) {
+      const ph = skyEngine.sky.phase;
+      const chips = timeChipsRef.current.children;
+      for (let i = 0; i < chips.length; i++) {
+        const c = chips[i] as HTMLElement;
+        c.classList.toggle("on", c.dataset.n === ph);
+      }
     }
 
     return unsub;
+  }, [reducedMotion]);
+
+  // ─── Dimensions & Fit ─────────────────────────────────
+  const getDims = useCallback(() => {
+    const main = mainRef.current;
+    if (main && main.offsetWidth > 0 && main.offsetHeight > 0) {
+      lastDimsRef.current = {
+        w: main.offsetWidth + 72,
+        h: main.offsetHeight + 18,
+      };
+    }
+    return lastDimsRef.current;
   }, []);
 
   // ─── Minimize / Maximize ──────────────────────────────
@@ -105,51 +239,135 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         v ? "Buka panel waktu" : "Kecilkan panel waktu"
       );
 
+      const s = getDims();
+
       if (instant || !gsap || reducedMotion) {
-        T.style.width = v ? "56px" : "";
-        T.style.height = v ? "56px" : "";
-        T.style.borderRadius = v ? "28px" : "26px";
+        T.style.width = (v ? 56 : s.w) + "px";
+        T.style.height = (v ? 56 : s.h) + "px";
+        T.style.borderRadius = (v ? 28 : 26) + "px";
         main.style.opacity = v ? "0" : "1";
         main.style.visibility = v ? "hidden" : "visible";
       } else if (v) {
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
         tw.to(main, { opacity: 0, x: -12, duration: 0.22, ease: "power2.in" }, 0);
-        tw.to(T, { width: 56, height: 56, borderRadius: 28, duration: 0.55 }, 0.05);
-        tw.add(() => { main.style.visibility = "hidden"; }, 0.3);
-        tw.fromTo(orb, { scale: 1 }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut" }, 0.45);
+        tw.fromTo(
+          T,
+          { width: s.w, height: s.h, borderRadius: 26 },
+          { width: 56, height: 56, borderRadius: 28, duration: 0.55, ease: "power3.inOut" },
+          0.05
+        );
+        tw.add(() => {
+          main.style.visibility = "hidden";
+        }, 0.3);
+        tw.fromTo(
+          orb,
+          { scale: 1 },
+          { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut" },
+          0.45
+        );
         twRef.current = tw;
       } else {
         main.style.visibility = "visible";
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
-        // Take snapshot of desired dimensions
-        const dims = { w: main.offsetWidth + 72, h: main.offsetHeight + 18 };
-        tw.to(T, { width: dims.w, height: dims.h, borderRadius: 26, duration: 0.55 }, 0);
-        tw.fromTo(main, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 0.18);
-        tw.from(main.children, { y: 8, opacity: 0, stagger: 0.06, duration: 0.35, ease: "power2.out" }, 0.22);
+        tw.fromTo(
+          T,
+          { width: 56, height: 56, borderRadius: 28 },
+          { width: s.w, height: s.h, borderRadius: 26, duration: 0.55, ease: "power3.inOut" },
+          0
+        );
+        tw.fromTo(
+          main,
+          { opacity: 0, x: -12 },
+          { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" },
+          0.18
+        );
+        tw.from(
+          main.children,
+          { y: 8, opacity: 0, stagger: 0.06, duration: 0.35, ease: "power2.out" },
+          0.22
+        );
         twRef.current = tw;
       }
 
       if (save) {
-        try { localStorage.setItem("todMin", v ? "1" : "0"); } catch { /* ignore */ }
+        try {
+          localStorage.setItem("todMin", v ? "1" : "0");
+        } catch {
+          /* ignore */
+        }
       }
     },
-    [reducedMotion]
+    [reducedMotion, getDims]
   );
 
-  // ─── Auto-minimize setelah 6.5 detik ──────────────────
+  // ─── Initial mount & Refresh State ────────────────────
   useEffect(() => {
-    let stored: string | null = null;
-    try { stored = localStorage.getItem("todMin"); } catch { /* ignore */ }
+    const T = ref.current;
+    const main = mainRef.current;
+    if (!T || !main) return;
 
-    if (stored === "1" || matchMedia("(max-width:760px),(max-height:520px)").matches) {
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem("todMin");
+    } catch {}
+
+    const isMob = window.matchMedia("(max-width:760px),(max-height:520px)").matches;
+    // By default on page load / refresh, always start MINIMIZED as a round button!
+    const shouldOpen = stored === "0" && !isMob;
+
+    if (shouldOpen) {
+      doSetMin(false, true, false);
+    } else {
       doSetMin(true, true, false);
-    } else if (stored === null) {
-      const timer = setTimeout(() => {
-        if (!touchedRef.current) doSetMin(true, false, false);
-      }, 6500);
-      return () => clearTimeout(timer);
     }
   }, [doSetMin]);
+
+  // ─── Resize listener ──────────────────────────────────
+  useEffect(() => {
+    const handleResize = () => {
+      if (min) return;
+      const T = ref.current;
+      if (!T) return;
+      const s = getDims();
+      T.style.width = s.w + "px";
+      T.style.height = s.h + "px";
+    };
+    window.addEventListener("resize", handleResize);
+    if (document.fonts) document.fonts.ready.then(handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [min, getDims]);
+
+  // ─── Mobile backdrop, outside tap, and scroll close ───
+  useEffect(() => {
+    const hero = document.getElementById("hero");
+    const mob = window.matchMedia("(max-width:760px)");
+
+    const sync = () => {
+      if (hero) hero.classList.toggle("todopen", mob.matches && !min);
+    };
+    sync();
+
+    const onPointerDown = (e: PointerEvent) => {
+      const T = ref.current;
+      if (!T || !mob.matches || min || T.contains(e.target as Node)) return;
+      doSetMin(true, false, true);
+    };
+
+    const onScroll = () => {
+      if (mob.matches && window.scrollY > 40 && !min) {
+        doSetMin(true, false, true);
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      if (hero) hero.classList.remove("todopen");
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [min, doSetMin]);
 
   // ─── Fade saat scroll ─────────────────────────────────
   useEffect(() => {
@@ -177,7 +395,8 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Preset chip klik ─────────────────────────────────
   const handleChipClick = useCallback(
-    (h: number) => {
+    (name: string, h: number) => {
+      audioEngine.sf.chime(name);
       stopDrive();
       setAuto(false);
       skyEngine.setAuto(false);
@@ -189,7 +408,9 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           duration: 1.8,
           ease: "sine.inOut",
           onUpdate: () => skyEngine.setHour(o.v),
-          onComplete: () => { driveRef.current = null; },
+          onComplete: () => {
+            driveRef.current = null;
+          },
         });
         driveRef.current = tween;
       } else {
@@ -201,14 +422,16 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Otomatis ─────────────────────────────────────────
   const handleAuto = useCallback(() => {
+    audioEngine.sf.ting();
     stopDrive();
     setAuto(true);
     skyEngine.setAuto(true);
     if (gsap && !reducedMotion) {
       const target = skyEngine.realHour();
       const o = { v: skyEngine.sky.hour };
+      const d = ((target - o.v + 36) % 24) - 12;
       gsap.to(o, {
-        v: target,
+        v: o.v + d,
         duration: 1.2,
         ease: "power2.inOut",
         onUpdate: () => skyEngine.setHour(o.v),
@@ -220,6 +443,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Putar hari ───────────────────────────────────────
   const handlePlay = useCallback(() => {
+    audioEngine.sf.tick();
     if (playing) {
       stopDrive();
       return;
@@ -247,8 +471,14 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   }
 
   // ─── Fase bulan ────────────────────────────────────────
-  const handleMoonPrev = useCallback(() => skyEngine.stepMoonPhase(-1), []);
-  const handleMoonNext = useCallback(() => skyEngine.stepMoonPhase(1), []);
+  const handleMoonPrev = useCallback(() => {
+    audioEngine.sf.tick();
+    skyEngine.stepMoonPhase(-1);
+  }, []);
+  const handleMoonNext = useCallback(() => {
+    audioEngine.sf.tick();
+    skyEngine.stepMoonPhase(1);
+  }, []);
 
   // ─── Keyboard T ────────────────────────────────────────
   useEffect(() => {
@@ -269,27 +499,37 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   return (
     <div
       ref={ref}
-      className="todx"
+      className="todx min"
       id="todx"
-      style={{ willChange: "width,height" }}
+      style={{ willChange: "width,height,border-radius" }}
     >
       <button
         ref={orbRef}
         type="button"
         className="tod-orb"
-        aria-expanded="true"
-        aria-label="Kecilkan panel waktu"
+        aria-expanded={!min}
+        aria-label={min ? "Buka panel waktu" : "Kecilkan panel waktu"}
         onClick={() => {
           touchedRef.current = true;
+          audioEngine.sf[min ? "open" : "close"]();
           doSetMin(!min, false, true);
         }}
       >
-        <span ref={iconRef} className="tod-ic" id="todIc" aria-hidden="true" suppressHydrationWarning>
-          ☀
-        </span>
+        <span
+          ref={iconRef}
+          className="tod-ic"
+          id="todIc"
+          aria-hidden="true"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: SUN_SVG }}
+        />
       </button>
 
-      <div ref={mainRef} className="tod-main">
+      <div
+        ref={mainRef}
+        className="tod-main"
+        style={{ opacity: 0, visibility: "hidden" }}
+      >
         {/* Header */}
         <div className="tod-hd">
           <span ref={labelRef} className="tod-l" id="todL" suppressHydrationWarning>
@@ -298,7 +538,11 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           <button
             type="button"
             className="tod-x"
-            onClick={() => doSetMin(true, false, true)}
+            aria-label="Kecilkan panel waktu"
+            onClick={() => {
+              audioEngine.sf.close();
+              doSetMin(true, false, true);
+            }}
           >
             −
           </button>
@@ -325,7 +569,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         </div>
 
         {/* Chip preset */}
-        <div className="tod-chips" role="group" aria-label="Pilih waktu">
+        <div ref={timeChipsRef} className="tod-chips" role="group" aria-label="Pilih waktu">
           {PRESETS.map(([name, h]) => (
             <button
               key={name}
@@ -333,7 +577,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
               className="tod-c"
               data-n={name}
               data-h={h}
-              onClick={() => handleChipClick(h)}
+              onClick={() => handleChipClick(name, h)}
             >
               {name}
             </button>
@@ -361,6 +605,33 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           >
             ›
           </button>
+        </div>
+
+        {/* Season row (F14) */}
+        <div className="tod-chips tod-ssn" role="group" aria-label="Musim">
+          <button
+            type="button"
+            className={`tod-c tod-auto${weatherMode === "auto" ? " on" : ""}`}
+            aria-pressed={weatherMode === "auto"}
+            data-s="auto"
+            onClick={() => handleSeasonSelect("auto")}
+          >
+            {weatherMode === "auto"
+              ? `Cuaca otomatis · ${LB[currentSeason]}${isSurabaya ? " · Surabaya" : ""}`
+              : "Cuaca otomatis"}
+          </button>
+          {SEASONS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              className={`tod-c${weatherMode === id ? " on" : ""}`}
+              aria-pressed={weatherMode === id}
+              data-s={id}
+              onClick={() => handleSeasonSelect(id)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Controls row */}

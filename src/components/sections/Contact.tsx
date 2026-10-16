@@ -6,6 +6,7 @@ import { gsap } from "@/lib/gsap";
 import { siteConfig, socialLinks } from "@/data/site";
 import { showToast } from "@/components/layout/Toast";
 import TreasureChest from "./TreasureChest";
+import MessageBottle from "./MessageBottle";
 
 interface ContactProps {
   reducedMotion?: boolean;
@@ -124,6 +125,8 @@ export default function Contact({ reducedMotion = false }: ContactProps) {
           Salin email
         </button>
       </div>
+
+      <MessageBottle reducedMotion={reducedMotion} />
 
       <div className="contact-social-links">
         {socialLinks.map((link) => (

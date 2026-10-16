@@ -75,14 +75,12 @@ export default function About({ reducedMotion = false }: AboutProps) {
         ).length;
 
         if (count > 0) {
-          oceanStore.showToast(
-            `${count} proyek memakai ${nextSkill}. Lihat di Proyek dan Jelajah.`
-          );
+          oceanStore.toast(`${nextSkill} dipakai di ${count} proyek`, { p: 0 });
         } else {
-          oceanStore.showToast(`Belum ada proyek publik dengan ${nextSkill}.`);
+          oceanStore.toast(`${nextSkill}: belum ada proyek publik`, { p: 0 });
         }
       } else {
-        oceanStore.showToast("Filter dibersihkan");
+        oceanStore.toast("Filter dibersihkan", { p: 0 });
       }
     },
     [activeSkill, setActiveSkill]

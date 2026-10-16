@@ -12,6 +12,14 @@ export interface Threat {
   mega?: boolean;
 }
 
+export type QualityLevel = "hi" | "mid" | "lo";
+export type SeasonName = "cerah" | "kemarau" | "hujan" | "salju" | "gugur" | "semi";
+export type WeatherMode = "auto" | SeasonName;
+
+export interface ToastOptions {
+  p?: number; // 0: visitor action (default), 1: ambient/discovery
+}
+
 export interface OceanState {
   depth: number;       // v: >0 meter di udara, <0 meter di bawah laut
   depthMeters: number; // Nilai bulat |v|
@@ -23,10 +31,15 @@ export interface OceanState {
   volume: number;      // Volume audio (0..1)
   isMuted: boolean;    // Audio mute
   isLowSpec: boolean;  // Degradasi performa otomatis jika spek rendah
+  qualityLevel: QualityLevel;
+  qualityScale: number;
+  season: SeasonName;
+  weatherMode: WeatherMode;
+  portalOpen: boolean;
 }
 
 type Listener = (state: OceanState) => void;
-type ToastListener = (message: string) => void;
+type ToastListener = (message: string, duration: number) => void;
 
 class OceanStore {
   private state: OceanState = {
@@ -40,10 +53,19 @@ class OceanStore {
     volume: 0.6,
     isMuted: false,
     isLowSpec: false,
+    qualityLevel: "hi",
+    qualityScale: 1,
+    season: "cerah",
+    weatherMode: "auto",
+    portalOpen: false,
   };
 
   private listeners = new Set<Listener>();
   private toastListeners = new Set<ToastListener>();
+  private lastToastText = "";
+  private lastToastTime = 0;
+  private lastAnyToastTime = 0;
+  private p1Count = 0;
 
   constructor() {
     // Inisialisasi awal di client
@@ -160,8 +182,84 @@ class OceanStore {
     this.notify();
   }
 
-  public showToast(message: string) {
-    this.toastListeners.forEach((fn) => fn(message));
+  public getQualityLevel(): QualityLevel {
+    return this.state.qualityLevel;
+  }
+
+  public getQualityScale(): number {
+    return this.state.qualityScale;
+  }
+
+  public setQualityLevel(level: QualityLevel) {
+    if (this.state.qualityLevel === level) return;
+    this.state.qualityLevel = level;
+    this.state.qualityScale = level === "hi" ? 1 : level === "mid" ? 0.6 : 0.35;
+    this.state.isLowSpec = level === "lo";
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-q", level);
+    }
+    this.notify();
+  }
+
+  public getSeason(): SeasonName {
+    return this.state.season;
+  }
+
+  public getWeatherMode(): WeatherMode {
+    return this.state.weatherMode;
+  }
+
+  public setSeason(season: SeasonName) {
+    if (this.state.season === season) return;
+    this.state.season = season;
+    this.notify();
+  }
+
+  public setWeatherMode(mode: WeatherMode) {
+    if (this.state.weatherMode === mode) return;
+    this.state.weatherMode = mode;
+    this.notify();
+  }
+
+  public setPortalOpen(open: boolean) {
+    if (this.state.portalOpen === open) return;
+    this.state.portalOpen = open;
+    this.notify();
+  }
+
+  public toast(message: string, options?: ToastOptions) {
+    const now = Date.now();
+    const p = options?.p ?? 0;
+
+    // (1) pesan identik dalam 6 dtk diabaikan
+    if (message === this.lastToastText && now - this.lastToastTime < 6000) {
+      return;
+    }
+
+    // (2) prioritas p:0 selalu tampil;
+    //     prioritas p:1 (ambient/penemuan) ditahan bila:
+    //     - ada notif yang tampil dalam 8 dtk terakhir
+    //     - portal proyek terbuka
+    //     - sudah 4 notif p:1 muncul dalam sesi
+    if (p === 1) {
+      if (this.state.portalOpen) return;
+      if (now - this.lastAnyToastTime < 8000) return;
+      if (this.p1Count >= 4) return;
+      this.p1Count++;
+    }
+
+    this.lastToastText = message;
+    this.lastToastTime = now;
+    this.lastAnyToastTime = now;
+
+    // (3) durasi tampil = min(4.2 dtk, 1.7 dtk + 0.045 dtk * jumlah huruf)
+    const duration = Math.min(4200, 1700 + Math.round(45 * message.length));
+
+    this.toastListeners.forEach((fn) => fn(message, duration));
+  }
+
+  public showToast(message: string, options?: ToastOptions) {
+    this.toast(message, options);
   }
 
   public subscribe(listener: Listener): () => void {
@@ -180,3 +278,11 @@ class OceanStore {
 }
 
 export const oceanStore = new OceanStore();
+
+export function toast(message: string, options?: ToastOptions) {
+  oceanStore.toast(message, options);
+}
+
+export function showToast(message: string, options?: ToastOptions) {
+  oceanStore.toast(message, options);
+}

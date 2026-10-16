@@ -12,11 +12,16 @@ export default function TreasureChest({ reducedMotion = false }: { reducedMotion
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
 
-    oceanStore.showToast(
+    oceanStore.toast(
       nextOpen
-        ? "Harta karun ditemukan! Sebuah pesan rahasia: teruslah berkarya dan berenang."
-        : "Peti ditutup kembali."
+        ? "Harta karun terbuka: teruslah berkarya"
+        : "Peti ditutup kembali",
+      { p: 1 }
     );
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ocean:chest", { detail: { open: nextOpen } }));
+    }
 
     if (nextOpen && !reducedMotion && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();

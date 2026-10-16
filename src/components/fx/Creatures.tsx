@@ -189,10 +189,11 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
 
       if (isMega) {
         seenMegalodonCount++;
-        oceanStore.showToast(
+        oceanStore.toast(
           seenMegalodonCount > 1
-            ? `Megalodon lagi! Sudah ${seenMegalodonCount}x kamu lihat.`
-            : "Megalodon! Kamu beruntung melihatnya."
+            ? `Megalodon lagi (${seenMegalodonCount}x)`
+            : "Megalodon! Beruntung sekali",
+          { p: 1 }
         );
 
         gsap.fromTo(
@@ -336,7 +337,7 @@ export default function Creatures({ reducedMotion = false }: { reducedMotion?: b
         cr.pulse = 1;
         emitRings(headX, headY, "rgba(255,90,90,0.85)");
         audioEngine.rumbleMegalodon();
-        oceanStore.showToast("Grrr! Jangan diganggu.");
+        oceanStore.toast("Grrr! Jangan diganggu.", { p: 1 });
       } else {
         emitRings(headX, headY, "rgba(160,220,255,0.85)");
         audioEngine.singWhale();
