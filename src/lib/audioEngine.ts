@@ -45,6 +45,16 @@ export class AudioEngine {
   private gWave: GainNode | null = null;
   private gDrone: GainNode | null = null;
 
+  // Season Ambience Nodes (F14)
+  private auSeasonBuilt = false;
+  private gSeasonHi: GainNode | null = null;
+  private gSeasonLo: GainNode | null = null;
+  private gSeasonWd: GainNode | null = null;
+  private fSeasonWd: BiquadFilterNode | null = null;
+  private gSeasonDry: GainNode | null = null;
+  private nextCicada = 3;
+  private nextSeasonTone = 2;
+
   private pinkBuffer: AudioBuffer | null = null;
   private isPlaying = false;
   private isEnding = false;
@@ -642,6 +652,232 @@ export class AudioEngine {
     this.applyDepth(v);
   }
 
+  // ─── Season Audio Engine (F14) ──────────────────────────────────
+  private initSeasonAudio() {
+    if (!this.ctx || !this.bAmb || !this.pinkBuffer || this.auSeasonBuilt) return;
+    const out = this.bAmb;
+
+    // 1. Hujan frekuensi tinggi (bandpass 3800Hz, Q 0.45)
+    this.gSeasonHi = this.gn(0);
+    this.noise("bandpass", 3800, 0.45).connect(this.gSeasonHi);
+    this.gSeasonHi.connect(out);
+
+    // 2. Hujan frekuensi rendah (bandpass 1300Hz, Q 0.6) dengan LFO 0.3Hz
+    this.gSeasonLo = this.gn(0);
+    const loFilter = this.noise("bandpass", 1300, 0.6);
+    loFilter.connect(this.gSeasonLo);
+    this.gSeasonLo.connect(out);
+    const oscLo = this.ctx.createOscillator();
+    const oscLoGain = this.gn(0.012);
+    oscLo.frequency.value = 0.3;
+    oscLo.connect(oscLoGain);
+    oscLoGain.connect(this.gSeasonLo.gain);
+    oscLo.start();
+
+    // 3. Angin (lowpass 420Hz, Q 0.7) dengan modulasi frekuensi gust
+    this.gSeasonWd = this.gn(0);
+    this.fSeasonWd = this.noise("lowpass", 420, 0.7);
+    this.fSeasonWd.connect(this.gSeasonWd);
+    this.gSeasonWd.connect(out);
+
+    // 4. Kemarau udara kering (bandpass 900Hz, Q 0.5)
+    this.gSeasonDry = this.gn(0);
+    this.noise("bandpass", 900, 0.5).connect(this.gSeasonDry);
+    this.gSeasonDry.connect(out);
+
+    this.auSeasonBuilt = true;
+  }
+
+  public seasonTick(
+    dt: number,
+    w: { cerah?: number; kemarau?: number; hujan?: number; salju?: number; gugur?: number; semi?: number },
+    gust: number,
+    n: number
+  ) {
+    if (!this.isPlaying || !this.ctx || this.isCalm()) {
+      if (this.gSeasonHi && this.ctx) {
+        const now = this.ctx.currentTime;
+        this.gSeasonHi.gain.setTargetAtTime(0, now, 0.4);
+        if (this.gSeasonLo) this.gSeasonLo.gain.setTargetAtTime(0, now, 0.4);
+        if (this.gSeasonWd) this.gSeasonWd.gain.setTargetAtTime(0, now, 0.4);
+        if (this.gSeasonDry) this.gSeasonDry.gain.setTargetAtTime(0, now, 0.4);
+      }
+      return;
+    }
+    this.initSeasonAudio();
+    if (!this.gSeasonHi || !this.gSeasonLo || !this.gSeasonWd || !this.fSeasonWd || !this.gSeasonDry) return;
+
+    const now = this.ctx.currentTime;
+    const ug = 1 - clamp(this.currentUnderwaterDepth / 30, 0, 1);
+    const sm = (g: GainNode, val: number) => g.gain.setTargetAtTime(val * this.volume, now, 0.6);
+
+    const wHujan = w.hujan || 0;
+    const wSalju = w.salju || 0;
+    const wGugur = w.gugur || 0;
+    const wSemi = w.semi || 0;
+    const wKemarau = w.kemarau || 0;
+
+    sm(this.gSeasonHi, 0.085 * wHujan * ug);
+    sm(this.gSeasonLo, 0.055 * wHujan * ug);
+    sm(this.gSeasonWd, (0.075 * wSalju + 0.04 * wGugur + 0.035 * wSemi + 0.02 * wHujan) * ug * (1 + gust * 0.9));
+    this.fSeasonWd.frequency.setTargetAtTime(380 + gust * 1000 + wHujan * 120, now, 0.15);
+    sm(this.gSeasonDry, 0.028 * wKemarau * ug);
+
+    if (ug > 0.3) {
+      this.nextCicada -= dt;
+      if (this.nextCicada <= 0) {
+        this.nextCicada = wKemarau > 0.5 ? (n < 0.5 ? 5 + Math.random() * 9 : 0.9 + Math.random() * 1.4) : 99;
+        if (wKemarau > 0.5) {
+          this.oneShot(n < 0.5 ? "cicada" : "cricket");
+        }
+      }
+
+      this.nextSeasonTone -= dt;
+      if (this.nextSeasonTone <= 0) {
+        this.nextSeasonTone = 4 + Math.random() * 7;
+        if (wSalju > 0.5) this.sfx("chime");
+        if (wSemi > 0.5) this.sfx("bell");
+      }
+    }
+  }
+
+  public oneShot(
+    type: "thunder" | "whoosh" | "rustle" | "cicada" | "cricket",
+    p?: { d?: number; k?: number }
+  ) {
+    if (!this.ctx || !this.isPlaying || this.isCalm() || !this.pinkBuffer || !this.bAmb) return;
+    const delay = p?.d || 0;
+    const t = this.ctx.currentTime + delay;
+    const out = this.bAmb;
+
+    const noiseSrc = (
+      f0: number,
+      f1: number,
+      q: number,
+      ft: BiquadFilterType,
+      dur: number,
+      vol: number,
+      att: number
+    ) => {
+      if (!this.ctx || !this.pinkBuffer) return;
+      const s = this.ctx.createBufferSource();
+      const b = this.ctx.createBiquadFilter();
+      const g = this.gn(0.0001);
+      s.buffer = this.pinkBuffer;
+      s.loop = true;
+      b.type = ft;
+      b.Q.value = q;
+      b.frequency.setValueAtTime(f0, t);
+      b.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol * this.volume, t + att);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(b);
+      b.connect(g);
+      g.connect(out);
+      s.start(t, Math.random() * 4);
+      s.stop(t + dur + 0.1);
+    };
+
+    if (type === "thunder") {
+      const len = 2.8 + Math.random() * 1.4;
+      const v = 0.5 * (1 - delay * 0.3);
+      noiseSrc(420, 70, 0.7, "lowpass", len, v, 0.06);
+      [0.55, 1.15, 1.9].forEach((o, i) => {
+        noiseSrc(220 - i * 40, 60, 0.8, "lowpass", len - o, v * (0.55 - i * 0.15), 0.04);
+      });
+      noiseSrc(2600, 900, 1.2, "bandpass", 0.22, 0.28, 0.01);
+    } else if (type === "whoosh") {
+      noiseSrc(300, 1500, 0.9, "bandpass", 0.8, 0.12 * (p?.k || 1), 0.25);
+    } else if (type === "rustle") {
+      for (let i = 0; i < 4; i++) {
+        const tt = t + i * 0.07;
+        const s = this.ctx.createBufferSource();
+        const b = this.ctx.createBiquadFilter();
+        const g = this.gn(0.0001);
+        s.buffer = this.pinkBuffer;
+        s.loop = true;
+        b.type = "highpass";
+        b.frequency.value = 2800 + Math.random() * 1500;
+        g.gain.setValueAtTime(0.0001, tt);
+        g.gain.exponentialRampToValueAtTime(0.05 * this.volume, tt + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.1);
+        s.connect(b);
+        b.connect(g);
+        g.connect(out);
+        s.start(tt, Math.random() * 4);
+        s.stop(tt + 0.15);
+      }
+    } else if (type === "cicada") {
+      const o = this.ctx.createOscillator();
+      const bp = this.ctx.createBiquadFilter();
+      const am = this.gn(0.5);
+      const lf = this.ctx.createOscillator();
+      const lg = this.gn(0.45);
+      const ev = this.gn(0.0001);
+      const dur = 3.2 + Math.random() * 2.4;
+      o.type = "sawtooth";
+      o.frequency.value = 3300 + Math.random() * 400;
+      bp.type = "bandpass";
+      bp.frequency.value = 3500;
+      bp.Q.value = 7;
+      lf.frequency.value = 44 + Math.random() * 14;
+      lf.connect(lg);
+      lg.connect(am.gain);
+      ev.gain.setValueAtTime(0.0001, t);
+      ev.gain.exponentialRampToValueAtTime(0.05 * this.volume, t + dur * 0.45);
+      ev.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(bp);
+      bp.connect(am);
+      am.connect(ev);
+      ev.connect(out);
+      o.start(t);
+      lf.start(t);
+      o.stop(t + dur + 0.1);
+      lf.stop(t + dur + 0.1);
+    } else if (type === "cricket") {
+      const o = this.ctx.createOscillator();
+      const ev = this.gn(0);
+      const f = 4100 + Math.random() * 300;
+      o.frequency.value = f;
+      o.connect(ev);
+      ev.connect(out);
+      for (let i = 0; i < 4; i++) {
+        const tt = t + i * 0.075;
+        ev.gain.setValueAtTime(0, tt);
+        ev.gain.linearRampToValueAtTime(0.03 * this.volume, tt + 0.008);
+        ev.gain.linearRampToValueAtTime(0, tt + 0.04);
+      }
+      o.start(t);
+      o.stop(t + 0.4);
+    }
+  }
+
+  public sfx(k: "chime" | "bell" | "warm") {
+    if (!this.ctx || !this.isPlaying || this.isCalm()) return;
+    if (k === "chime") {
+      [3, 5, 7].forEach((n, i) =>
+        this.tone(PENT[n % 8] * 4, PENT[n % 8] * 4, 0.5, "sine", 0.05, 0, i * 0.1)
+      );
+    } else if (k === "bell") {
+      [0, 2, 4, 6].forEach((n, i) =>
+        this.tone(PENT[n] * 4, PENT[n] * 4, 0.45, "triangle", 0.05, 0, i * 0.09)
+      );
+    } else if (k === "warm") {
+      this.tone(196, 190, 0.7, "triangle", 0.07);
+      this.tone(294, 290, 0.6, "sine", 0.04, 0, 0.05);
+    }
+  }
+
+  public seasonSfx(s: string) {
+    if (s === "hujan") this.oneShot("thunder", { d: 0.3 });
+    else if (s === "salju") this.sfx("chime");
+    else if (s === "semi") this.sfx("bell");
+    else if (s === "kemarau") this.sfx("warm");
+    else if (s === "gugur") this.oneShot("rustle");
+    else this.oneShot("whoosh", { k: 0.6 });
+  }
+
   public toggle(): boolean {
     if (!this.ctx) {
       this.buildGraph();
@@ -718,3 +954,7 @@ export class AudioEngine {
 }
 
 export const audioEngine = new AudioEngine();
+
+if (typeof window !== "undefined") {
+  (window as unknown as { __aud: unknown }).__aud = audioEngine;
+}

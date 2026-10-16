@@ -11,6 +11,7 @@ import RippleCanvas from "@/components/fx/RippleCanvas";
 import SkyFx from "@/components/fx/SkyFx";
 import CelestialBodies from "@/components/fx/CelestialBodies";
 import TimePanel from "@/components/fx/TimePanel";
+import WeatherCanvas from "@/components/fx/WeatherCanvas";
 
 interface HeroProps {
   isNight: boolean;
@@ -128,6 +129,7 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
       <div className="hint">Gulir untuk menyelam</div>
       <Tide reducedMotion={reducedMotion} />
       <RippleCanvas reducedMotion={reducedMotion} />
+      <WeatherCanvas reducedMotion={reducedMotion} />
       <TimePanel reducedMotion={reducedMotion} />
     </header>
   );

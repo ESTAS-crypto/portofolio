@@ -9,6 +9,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { gsap } from "@/lib/gsap";
 import { skyEngine } from "@/lib/skyTimeEngine";
+import { oceanStore, SeasonName, WeatherMode } from "@/lib/oceanStore";
 
 interface TimePanelProps {
   reducedMotion?: boolean;
@@ -23,6 +24,24 @@ const PRESETS: [string, number][] = [
   ["Malam", 22],
 ];
 
+const SEASONS: { id: SeasonName; label: string }[] = [
+  { id: "cerah", label: "Cerah" },
+  { id: "kemarau", label: "Kemarau" },
+  { id: "hujan", label: "Hujan" },
+  { id: "salju", label: "Salju" },
+  { id: "gugur", label: "Gugur" },
+  { id: "semi", label: "Semi" },
+];
+
+const LB: Record<SeasonName, string> = {
+  cerah: "Cerah",
+  kemarau: "Kemarau",
+  hujan: "Hujan",
+  salju: "Salju",
+  gugur: "Gugur",
+  semi: "Semi",
+};
+
 export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const ref = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -36,8 +55,47 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const [min, setMin] = useState(false);
   const [auto, setAuto] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<SeasonName>("cerah");
+  const [weatherMode, setWeatherMode] = useState<WeatherMode>("auto");
+  const [isSurabaya, setIsSurabaya] = useState(false);
   const driveRef = useRef<gsap.core.Tween | null>(null);
   const touchedRef = useRef(false);
+
+  useEffect(() => {
+    setCurrentSeason(oceanStore.getSeason());
+    setWeatherMode(oceanStore.getWeatherMode());
+
+    const unsub = oceanStore.subscribe((state) => {
+      setCurrentSeason(state.season);
+      setWeatherMode(state.weatherMode);
+    });
+
+    const onSeasonEv = (e: Event) => {
+      const s = (e as CustomEvent<SeasonName>).detail;
+      if (s) setCurrentSeason(s);
+    };
+
+    const onWeatherEv = () => {
+      setIsSurabaya(true);
+    };
+
+    window.addEventListener("ocean:season", onSeasonEv);
+    window.addEventListener("ocean:weather-update", onWeatherEv);
+
+    return () => {
+      unsub();
+      window.removeEventListener("ocean:season", onSeasonEv);
+      window.removeEventListener("ocean:weather-update", onWeatherEv);
+    };
+  }, []);
+
+  const handleSeasonSelect = useCallback((s: WeatherMode) => {
+    setWeatherMode(s);
+    oceanStore.setWeatherMode(s);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ocean:set-mode", { detail: s }));
+    }
+  }, []);
 
   // ─── Sinkron awal ────────────────────────────────────
   useEffect(() => {
@@ -361,6 +419,33 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           >
             ›
           </button>
+        </div>
+
+        {/* Season row (F14) */}
+        <div className="tod-chips tod-ssn" role="group" aria-label="Musim">
+          <button
+            type="button"
+            className={`tod-c tod-auto${weatherMode === "auto" ? " on" : ""}`}
+            aria-pressed={weatherMode === "auto"}
+            data-s="auto"
+            onClick={() => handleSeasonSelect("auto")}
+          >
+            {weatherMode === "auto"
+              ? `Cuaca otomatis · ${LB[currentSeason]}${isSurabaya ? " · Surabaya" : ""}`
+              : "Cuaca otomatis"}
+          </button>
+          {SEASONS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              className={`tod-c${weatherMode === id ? " on" : ""}`}
+              aria-pressed={weatherMode === id}
+              data-s={id}
+              onClick={() => handleSeasonSelect(id)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Controls row */}
