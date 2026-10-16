@@ -2969,20 +2969,6 @@ html[data-tod="night"] #hero::before,
   border: 1px solid var(--line);
   color: #fff;
   will-change: width, height;
-  width: 372px;
-  height: 350px;
-}
-
-.todx.min {
-  width: 56px !important;
-  height: 56px !important;
-  border-radius: 28px !important;
-}
-
-.todx.min .tod-main {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .todx .tod-orb {
@@ -3015,11 +3001,15 @@ html[data-tod="night"] #hero::before,
   cursor: pointer;
   color: #fff;
   background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.08));
-  transition: transform 0.25s;
+  transition: transform 0.25s, box-shadow 0.25s;
 }
 
 .tod-orb:hover {
   transform: scale(1.08);
+}
+
+.tod-orb:active {
+  transform: scale(0.95);
 }
 
 .tod-ic {
@@ -3071,11 +3061,19 @@ html[data-tod="night"] #hero::before,
   color: #fff;
   font: 700 1.1rem/1 var(--body);
   cursor: pointer;
-  transition: background 0.25s;
+  transition: background 0.25s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tod-x:hover {
   background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+}
+
+.tod-x:active {
+  transform: scale(0.92);
 }
 
 .tod-body {
@@ -3138,7 +3136,9 @@ html[data-tod="night"] #hero::before,
   padding: 5px 11px;
   font: 600 0.78rem var(--body);
   cursor: pointer;
-  transition: background 0.25s, transform 0.2s;
+  transition: background 0.25s, transform 0.2s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tod-c:hover {
@@ -3146,9 +3146,14 @@ html[data-tod="night"] #hero::before,
   transform: translateY(-2px);
 }
 
+.tod-c:active {
+  transform: translateY(0) scale(0.96);
+}
+
 .tod-c.on {
   background: #fff;
   color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .todx .tod-moon {
@@ -3200,12 +3205,25 @@ html[data-tod="night"] #hero::before,
   font: 600 0.8rem var(--body);
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.25s, transform 0.2s, color 0.25s, box-shadow 0.25s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tod-a:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.tod-a:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .tod-a[aria-pressed='true'],
 .tod-a.on {
   background: #fff;
   color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Hero overlay when todx is open on mobile */

@@ -9,6 +9,7 @@ test.describe("F14-F23 Features Verification", () => {
     });
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(1500);
   });
 
   test("F14: Weather canvas renders and responds to season change", async ({ page }) => {

@@ -59,6 +59,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const moonLabelRef = useRef<HTMLSpanElement>(null);
   const iconRef = useRef<HTMLSpanElement>(null);
   const orbRef = useRef<HTMLButtonElement>(null);
+  const timeChipsRef = useRef<HTMLDivElement>(null);
   const twRef = useRef<gsap.core.Timeline | null>(null);
 
   const [min, setMin] = useState(false);
@@ -69,6 +70,8 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const [isSurabaya, setIsSurabaya] = useState(false);
   const driveRef = useRef<gsap.core.Tween | null>(null);
   const touchedRef = useRef(false);
+  const lastIcRef = useRef<string>("☀");
+  const lastDimsRef = useRef({ w: 372, h: 360 });
 
   useEffect(() => {
     setCurrentSeason(oceanStore.getSeason());
@@ -137,7 +140,19 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       label.textContent = skyEngine.sky.label;
       slider.value = String(Math.round(skyEngine.sky.hour * 60));
       if (icon) {
-        icon.textContent = skyEngine.sky.icon;
+        if (skyEngine.sky.icon !== lastIcRef.current) {
+          lastIcRef.current = skyEngine.sky.icon;
+          icon.textContent = skyEngine.sky.icon;
+          if (gsap && !reducedMotion) {
+            gsap.fromTo(
+              icon,
+              { rotate: -90, scale: 0.4, opacity: 0 },
+              { rotate: 0, scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }
+            );
+          }
+        } else {
+          icon.textContent = skyEngine.sky.icon;
+        }
       }
       if (moonLabel) {
         moonLabel.textContent =
@@ -150,12 +165,21 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
         );
       }
+      if (timeChipsRef.current) {
+        const ph = skyEngine.sky.phase;
+        const chips = timeChipsRef.current.children;
+        for (let i = 0; i < chips.length; i++) {
+          const c = chips[i] as HTMLElement;
+          c.classList.toggle("on", c.dataset.n === ph);
+        }
+      }
     });
 
     // Initial render
     label.textContent = skyEngine.sky.label;
     slider.value = String(Math.round(skyEngine.sky.hour * 60));
     if (icon) {
+      lastIcRef.current = skyEngine.sky.icon;
       icon.textContent = skyEngine.sky.icon;
     }
     if (moonLabel) {
@@ -169,18 +193,28 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         skyEngine.sky.isNight ? "rgba(207,224,255,.65)" : "rgba(255,217,160,.75)"
       );
     }
+    if (timeChipsRef.current) {
+      const ph = skyEngine.sky.phase;
+      const chips = timeChipsRef.current.children;
+      for (let i = 0; i < chips.length; i++) {
+        const c = chips[i] as HTMLElement;
+        c.classList.toggle("on", c.dataset.n === ph);
+      }
+    }
 
     return unsub;
-  }, []);
+  }, [reducedMotion]);
 
   // ─── Dimensions & Fit ─────────────────────────────────
   const getDims = useCallback(() => {
     const main = mainRef.current;
-    if (!main) return { w: 372, h: 360 };
-    return {
-      w: (main.offsetWidth || 300) + 72,
-      h: (main.offsetHeight || 330) + 18,
-    };
+    if (main && main.offsetWidth > 0 && main.offsetHeight > 0) {
+      lastDimsRef.current = {
+        w: main.offsetWidth + 72,
+        h: main.offsetHeight + 18,
+      };
+    }
+    return lastDimsRef.current;
   }, []);
 
   // ─── Minimize / Maximize ──────────────────────────────
@@ -212,7 +246,12 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       } else if (v) {
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
         tw.to(main, { opacity: 0, x: -12, duration: 0.22, ease: "power2.in" }, 0);
-        tw.to(T, { width: 56, height: 56, borderRadius: 28, duration: 0.55 }, 0.05);
+        tw.fromTo(
+          T,
+          { width: s.w, height: s.h, borderRadius: 26 },
+          { width: 56, height: 56, borderRadius: 28, duration: 0.55, ease: "power3.inOut" },
+          0.05
+        );
         tw.add(() => {
           main.style.visibility = "hidden";
         }, 0.3);
@@ -226,7 +265,12 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       } else {
         main.style.visibility = "visible";
         const tw = gsap.timeline({ defaults: { ease: "power3.inOut" } });
-        tw.to(T, { width: s.w, height: s.h, borderRadius: 26, duration: 0.55 }, 0);
+        tw.fromTo(
+          T,
+          { width: 56, height: 56, borderRadius: 28 },
+          { width: s.w, height: s.h, borderRadius: 26, duration: 0.55, ease: "power3.inOut" },
+          0
+        );
         tw.fromTo(
           main,
           { opacity: 0, x: -12 },
@@ -358,7 +402,8 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Preset chip klik ─────────────────────────────────
   const handleChipClick = useCallback(
-    (h: number) => {
+    (name: string, h: number) => {
+      audioEngine.sf.chime(name);
       stopDrive();
       setAuto(false);
       skyEngine.setAuto(false);
@@ -370,7 +415,9 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           duration: 1.8,
           ease: "sine.inOut",
           onUpdate: () => skyEngine.setHour(o.v),
-          onComplete: () => { driveRef.current = null; },
+          onComplete: () => {
+            driveRef.current = null;
+          },
         });
         driveRef.current = tween;
       } else {
@@ -382,14 +429,16 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Otomatis ─────────────────────────────────────────
   const handleAuto = useCallback(() => {
+    audioEngine.sf.ting();
     stopDrive();
     setAuto(true);
     skyEngine.setAuto(true);
     if (gsap && !reducedMotion) {
       const target = skyEngine.realHour();
       const o = { v: skyEngine.sky.hour };
+      const d = ((target - o.v + 36) % 24) - 12;
       gsap.to(o, {
-        v: target,
+        v: o.v + d,
         duration: 1.2,
         ease: "power2.inOut",
         onUpdate: () => skyEngine.setHour(o.v),
@@ -401,6 +450,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
 
   // ─── Putar hari ───────────────────────────────────────
   const handlePlay = useCallback(() => {
+    audioEngine.sf.tick();
     if (playing) {
       stopDrive();
       return;
@@ -428,8 +478,14 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   }
 
   // ─── Fase bulan ────────────────────────────────────────
-  const handleMoonPrev = useCallback(() => skyEngine.stepMoonPhase(-1), []);
-  const handleMoonNext = useCallback(() => skyEngine.stepMoonPhase(1), []);
+  const handleMoonPrev = useCallback(() => {
+    audioEngine.sf.tick();
+    skyEngine.stepMoonPhase(-1);
+  }, []);
+  const handleMoonNext = useCallback(() => {
+    audioEngine.sf.tick();
+    skyEngine.stepMoonPhase(1);
+  }, []);
 
   // ─── Keyboard T ────────────────────────────────────────
   useEffect(() => {
@@ -462,6 +518,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         aria-label="Kecilkan panel waktu"
         onClick={() => {
           touchedRef.current = true;
+          audioEngine.sf[min ? "open" : "close"]();
           doSetMin(!min, false, true);
         }}
       >
@@ -479,7 +536,11 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
           <button
             type="button"
             className="tod-x"
-            onClick={() => doSetMin(true, false, true)}
+            aria-label="Kecilkan panel waktu"
+            onClick={() => {
+              audioEngine.sf.close();
+              doSetMin(true, false, true);
+            }}
           >
             −
           </button>
@@ -506,7 +567,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
         </div>
 
         {/* Chip preset */}
-        <div className="tod-chips" role="group" aria-label="Pilih waktu">
+        <div ref={timeChipsRef} className="tod-chips" role="group" aria-label="Pilih waktu">
           {PRESETS.map(([name, h]) => (
             <button
               key={name}
@@ -514,7 +575,7 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
               className="tod-c"
               data-n={name}
               data-h={h}
-              onClick={() => handleChipClick(h)}
+              onClick={() => handleChipClick(name, h)}
             >
               {name}
             </button>

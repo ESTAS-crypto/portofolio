@@ -280,7 +280,7 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
     // Listener for custom events from TimePanel or elsewhere
     const handleSetSeasonEvent = (e: Event) => {
       const detail = (e as CustomEvent<WeatherMode>).detail;
-      if (detail) setMode(detail, false, "event");
+      if (detail) setMode(detail, true, "event");
     };
     window.addEventListener("ocean:set-mode", handleSetSeasonEvent);
 

@@ -121,6 +121,7 @@ test.describe("CV Generator Unit & Regression Tests", () => {
 
   test("browser integration: clicking #cvBtn downloads Evan-Atharasya-CV.pdf", async ({ page }) => {
     await page.goto("http://localhost:3000");
+    await page.waitForTimeout(1500);
 
     // Open recruiter modal
     const sumBtn = page.locator("#sumBtn");
