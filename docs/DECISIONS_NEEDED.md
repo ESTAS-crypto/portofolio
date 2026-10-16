@@ -40,3 +40,22 @@ Di bagian Tentang (`#about`), keahlian saat ini ditampilkan dalam barisan marque
 - **Dukungan Keyboard:** Setiap chip tetap dapat difokus via Tab dan ditekan via Enter/Space untuk memicu filter proyek.
 - **Prefers-Reduced-Motion:** Efek melayang dinonaktifkan jika reduced-motion aktif, digantikan tata letak kartu grid statis yang rapi.
 - **Rekomendasi:** Jika Evan ingin mencoba tampilan ini, perubahan dapat dicoba dalam branch terpisah `feat/depth-skills` setelah seluruh F14-F22 dinyatakan stabil.
+
+---
+
+## 4. Usulan Opsional CV (Memerlukan Persetujuan Evan)
+> [!NOTE]
+> Usulan berikut berstatus **OPSIONAL** dan **TIDAK DIKERJAKAN** tanpa persetujuan langsung dari Evan:
+
+1. **Varian Hemat Tinta (Print-Friendly / Light Theme)**:
+   - *Konsep:* Varian PDF dengan sidebar berlatar putih bersih dan garis aksen biru/navy untuk menghemat tinta printer saat dicetak fisik.
+   - *Status:* Disimpan sebagai opsi masa depan jika dibutuhkan untuk wawancara tatap muka.
+
+2. **Versi Bahasa Inggris (EN Version)**:
+   - *Konsep:* Menyediakan keluaran `Evan-Atharasya-CV-EN.pdf` dengan terjemahan resmi bagian ringkasan, keahlian, dan studi kasus proyek.
+   - *Status:* Bergantung pada ketersediaan fitur dwibahasa (i18n) di situs portofolio.
+
+3. **Bagian Pendidikan, Pengalaman Kerja, atau Sertifikat**:
+   - *Konsep:* Menambahkan bagian riwayat pendidikan formal, pengalaman kerja/magang, dan sertifikasi keahlian.
+   - *Status:* Mematuhi Prinsip Utama 3 (tidak mengarang data); akan ditambahkan segera setelah Evan menyediakan data riwayat resmi.
+
