@@ -846,6 +846,8 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
       }
     };
 
+    gsap.ticker.add(tick);
+
     function loadRealWeather() {
       fetch("/api/weather")
         .then((r) => (r.ok ? r.json() : Promise.reject()))
