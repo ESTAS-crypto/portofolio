@@ -230,8 +230,11 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
       return HT + oc.surf(cl(x, 0, W), oc.frac(performance.now() / 1000));
     };
 
+    let lastSeasonChangeTime = performance.now();
+
     function setCur(s: SeasonName) {
       cur = s;
+      lastSeasonChangeTime = performance.now();
       oceanStore.setSeason(s);
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("ocean:season", { detail: s }));
@@ -280,7 +283,12 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
     // Listener for custom events from TimePanel or elsewhere
     const handleSetSeasonEvent = (e: Event) => {
       const detail = (e as CustomEvent<WeatherMode>).detail;
-      if (detail) setMode(detail, true, "event");
+      if (detail) {
+        setMode(detail, true, "event");
+        if (detail === "auto") {
+          loadRealWeather();
+        }
+      }
     };
     window.addEventListener("ocean:set-mode", handleSetSeasonEvent);
 
@@ -503,7 +511,9 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
 
     const tick = (t: number, dtms?: number) => {
       const dt = Math.min(0.05, (dtms || 16) / 1000);
-      const k = 1 - Math.exp(-dt * (mode === "auto" ? 0.35 : 2.5));
+      const isRecentChange = (performance.now() - lastSeasonChangeTime) < 2500;
+      const rateK = isRecentChange ? 2.5 : (mode === "auto" ? 0.35 : 2.5);
+      const k = 1 - Math.exp(-dt * rateK);
       const ex = Math.exp(-dt * 1.8);
 
       SE.forEach((s) => (w[s] += ((s === cur ? 1 : 0) - w[s]) * k));
@@ -857,6 +867,7 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
           RW.ok = true;
           RW.code = code;
           RW.t = Date.now();
+          oceanStore.setLiveWeather(true, code);
           if (mode === "auto") {
             const nx = mapW(code);
             if (nx !== cur) setCur(nx);
@@ -881,6 +892,7 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
               RW.ok = true;
               RW.code = code;
               RW.t = Date.now();
+              oceanStore.setLiveWeather(true, code);
               if (mode === "auto") {
                 const nx = mapW(code);
                 if (nx !== cur) setCur(nx);
@@ -895,12 +907,15 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
               }
             })
             .catch(() => {
-              if (Date.now() - RW.t > 2700000) RW.ok = false;
+              if (Date.now() - RW.t > 2700000) {
+                RW.ok = false;
+                oceanStore.setLiveWeather(false, null);
+              }
             });
         });
     }
 
-    const rwTimer = setTimeout(loadRealWeather, 1200);
+    const rwTimer = setTimeout(loadRealWeather, 50);
     const rwInterval = setInterval(loadRealWeather, 15 * 60 * 1000);
 
     return () => {

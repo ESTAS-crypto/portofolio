@@ -69,9 +69,9 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const [min, setMin] = useState(true);
   const [auto, setAuto] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [currentSeason, setCurrentSeason] = useState<SeasonName>("cerah");
-  const [weatherMode, setWeatherMode] = useState<WeatherMode>("auto");
-  const [isSurabaya, setIsSurabaya] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<SeasonName>(() => oceanStore.getSeason());
+  const [weatherMode, setWeatherMode] = useState<WeatherMode>(() => oceanStore.getWeatherMode());
+  const [isSurabaya, setIsSurabaya] = useState<boolean>(() => oceanStore.getState().isSurabaya);
   const driveRef = useRef<gsap.core.Tween | null>(null);
   const touchedRef = useRef(false);
   const lastIcRef = useRef<string>("");
@@ -80,10 +80,12 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   useEffect(() => {
     setCurrentSeason(oceanStore.getSeason());
     setWeatherMode(oceanStore.getWeatherMode());
+    setIsSurabaya(oceanStore.getState().isSurabaya);
 
     const unsub = oceanStore.subscribe((state) => {
       setCurrentSeason(state.season);
       setWeatherMode(state.weatherMode);
+      setIsSurabaya(state.isSurabaya);
     });
 
     const onSeasonEv = (e: Event) => {
@@ -116,8 +118,10 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
       window.dispatchEvent(new CustomEvent("ocean:set-mode", { detail: s }));
     }
     if (s === "auto") {
-      oceanStore.toast("Cuaca otomatis", { p: 0 });
-      audioEngine.seasonSfx("cerah");
+      const activeS = oceanStore.getSeason();
+      const isSby = oceanStore.getState().isSurabaya;
+      oceanStore.toast(`Cuaca otomatis · ${LB[activeS]}${isSby ? " · Surabaya" : ""}`, { p: 0 });
+      audioEngine.seasonSfx(activeS);
     } else {
       const h = HINT[s as SeasonName];
       oceanStore.toast(`${LB[s as SeasonName]}${h ? " · " + h : ""}`, { p: 0 });

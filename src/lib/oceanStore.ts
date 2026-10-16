@@ -36,6 +36,8 @@ export interface OceanState {
   season: SeasonName;
   weatherMode: WeatherMode;
   portalOpen: boolean;
+  isSurabaya: boolean;
+  weatherCode: number | null;
 }
 
 type Listener = (state: OceanState) => void;
@@ -58,6 +60,8 @@ class OceanStore {
     season: "cerah",
     weatherMode: "auto",
     portalOpen: false,
+    isSurabaya: false,
+    weatherCode: null,
   };
 
   private listeners = new Set<Listener>();
@@ -218,6 +222,13 @@ class OceanStore {
   public setWeatherMode(mode: WeatherMode) {
     if (this.state.weatherMode === mode) return;
     this.state.weatherMode = mode;
+    this.notify();
+  }
+
+  public setLiveWeather(isSurabaya: boolean, code: number | null = null) {
+    if (this.state.isSurabaya === isSurabaya && this.state.weatherCode === code) return;
+    this.state.isSurabaya = isSurabaya;
+    this.state.weatherCode = code;
     this.notify();
   }
 
