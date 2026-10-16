@@ -107,14 +107,39 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       });
     };
 
-    const syncFishCount = () => {
-      const targetNF = getFishCount(W);
+    const syncEntitiesCount = () => {
+      const scale = oceanStore.getQualityScale();
+      const baseNF = getFishCount(W);
+      const targetNF = Math.max(4, Math.ceil(baseNF * scale));
       while (F.length < targetNF) {
         F.push(createFish(F.length));
       }
       if (F.length > targetNF) {
         F.length = targetNF;
       }
+
+      const baseNJ = W < 640 ? 4 : W < 1100 ? 5 : 7;
+      const targetNJ = Math.max(2, Math.ceil(baseNJ * scale));
+      while (Jl.length < targetNJ) {
+        const i = Jl.length;
+        Jl.push({
+          x: ((i + 0.5) / targetNJ) * W + (rnd() - 0.5) * (W / targetNJ) * 0.6,
+          y: H * (0.15 + rnd() * 0.8),
+          hx: 0,
+          z: 0.55 + rnd() * 0.7,
+          ph: rnd() * 6.28,
+          h: 180 + rnd() * 40,
+          vx: 0,
+          vy: 0,
+          g: 0,
+          f: 0,
+          jet: 0,
+        });
+      }
+      if (Jl.length > targetNJ) {
+        Jl.length = targetNJ;
+      }
+      updateHomes();
     };
 
     const handleResize = () => {
@@ -123,32 +148,11 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       cv.width = W * dpr;
       cv.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      updateHomes();
-      syncFishCount();
+      syncEntitiesCount();
     };
 
-    const initialNF = getFishCount(W);
-    for (let i = 0; i < initialNF; i++) {
-      F.push(createFish(i));
-    }
-
-    for (let i = 0; i < NJ; i++) {
-      Jl.push({
-        x: ((i + 0.5) / NJ) * W + (rnd() - 0.5) * (W / NJ) * 0.6,
-        y: H * (0.15 + rnd() * 0.8),
-        hx: 0,
-        z: 0.55 + rnd() * 0.7,
-        ph: rnd() * 6.28,
-        h: 185 + rnd() * 115,
-        vx: 0,
-        vy: 0,
-        g: 0,
-        f: 0,
-        jet: 0,
-      });
-    }
-
     handleResize();
+    const unsubStore = oceanStore.subscribe(syncEntitiesCount);
     window.addEventListener("resize", handleResize);
 
     let mouseX = -999;
@@ -311,7 +315,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
 
       if (jellyAlpha > 0.5 && !hasShownReefHint) {
         hasShownReefHint = true;
-        oceanStore.showToast("Coba sentuh dan tarik ubur-ubur. Klik air untuk memberi makan ikan.");
+        oceanStore.toast("Tarik ubur-ubur, klik air untuk memberi makan ikan", { p: 1 });
       }
 
       cursorSpeed += (Math.min(60, Math.hypot(mouseX - prevMouseX, mouseY - prevMouseY)) - cursorSpeed) * 0.3;
@@ -627,6 +631,7 @@ export default function ReefCanvas({ reducedMotion = false }: { reducedMotion?: 
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
       if (touchResetTimer) clearTimeout(touchResetTimer);
+      unsubStore();
       gsap.ticker.remove(onTick);
     };
   }, [reducedMotion]);

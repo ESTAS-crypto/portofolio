@@ -83,7 +83,22 @@ export default function Caustics({ reducedMotion = false }: { reducedMotion?: bo
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("resize", handleResize);
 
+    let frameCount = 0;
     const tickerCb = (time: number) => {
+      const q = oceanStore.getQualityLevel();
+      if (q === "lo") {
+        if (canvas.style.display !== "none") canvas.style.display = "none";
+        return;
+      }
+      if (canvas.style.display === "none") {
+        canvas.style.display = "";
+      }
+
+      if (q === "mid") {
+        frameCount++;
+        if (frameCount % 2 !== 0) return;
+      }
+
       if (document.hidden || oceanStore.isCalm()) return;
       const bubEl = document.getElementById("bub");
       if (bubEl && Number(gsap.getProperty(bubEl, "opacity")) < 0.02) {

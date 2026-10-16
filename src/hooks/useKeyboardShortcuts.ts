@@ -28,10 +28,10 @@ export function useKeyboardShortcuts({ onNavigate, isPortalOpen = false }: Short
         oceanStore.toggleCalm();
       } else if (key === "m") {
         if (oceanStore.isCalm()) {
-          oceanStore.showToast("Matikan mode tenang terlebih dahulu untuk menyalakan suara");
+          oceanStore.toast("Matikan mode tenang terlebih dahulu untuk menyalakan suara", { p: 0 });
         } else {
           const active = audioEngine.toggle();
-          oceanStore.showToast(active ? "Audio aktif" : "Audio dibisukan");
+          oceanStore.toast(active ? "Musik nyala" : "Musik mati", { p: 0 });
         }
       } else if (key === "1") {
         onNavigate("about");
@@ -42,7 +42,7 @@ export function useKeyboardShortcuts({ onNavigate, isPortalOpen = false }: Short
       } else if (key === "4") {
         onNavigate("contact");
       } else if (key === "?") {
-        oceanStore.showToast("C: mode tenang. M: suara. 1 sampai 4: lompat bagian. Esc: tutup.");
+        oceanStore.toast("C tenang · M suara · T waktu · S musim · 1-4 bagian · Esc tutup", { p: 0 });
       }
     };
 

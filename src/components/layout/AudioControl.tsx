@@ -152,24 +152,13 @@ export default function AudioControl({ reducedMotion = false }: { reducedMotion?
 
       if (e.key === "n" || e.key === "N") {
         const musOn = audioEngine.toggleMusic();
-        oceanStore.showToast(musOn ? "Musik nyala" : "Musik mati");
+        oceanStore.toast(musOn ? "Musik nyala" : "Musik mati", { p: 0 });
       }
     };
 
-    // Observasi toast untuk suara pip/eclipse
-    const toastEl = document.querySelector(".toast");
-    let observer: MutationObserver | null = null;
-    if (toastEl) {
-      observer = new MutationObserver(() => {
-        if (!audioEngine.getActive()) return;
-        if (/Gerhana/.test(toastEl.textContent || "")) {
-          audioEngine.sf.eclipse();
-        } else {
-          audioEngine.sf.pip();
-        }
-      });
-      observer.observe(toastEl, { childList: true, characterData: true, subtree: true });
-    }
+    const handleEclipse = () => {
+      if (audioEngine.getActive()) audioEngine.sf.eclipse();
+    };
 
     document.addEventListener("click", handleClick);
     document.addEventListener("mouseover", handleMouseOver);
@@ -179,6 +168,7 @@ export default function AudioControl({ reducedMotion = false }: { reducedMotion?
     document.addEventListener("ocean:splash", handleSplash);
     document.addEventListener("ocean:horn", handleHorn);
     document.addEventListener("ocean:catch", handleCatch);
+    document.addEventListener("ocean:eclipse", handleEclipse);
 
     return () => {
       document.removeEventListener("click", handleClick);
@@ -189,13 +179,13 @@ export default function AudioControl({ reducedMotion = false }: { reducedMotion?
       document.removeEventListener("ocean:splash", handleSplash);
       document.removeEventListener("ocean:horn", handleHorn);
       document.removeEventListener("ocean:catch", handleCatch);
-      if (observer) observer.disconnect();
+      document.removeEventListener("ocean:eclipse", handleEclipse);
     };
   }, []);
 
   const handleToggle = useCallback(() => {
     if (isCalm) {
-      oceanStore.showToast("Matikan mode tenang terlebih dahulu untuk menyalakan suara");
+      oceanStore.toast("Matikan mode tenang terlebih dahulu untuk menyalakan suara", { p: 0 });
       return;
     }
     const newState = audioEngine.toggle();
