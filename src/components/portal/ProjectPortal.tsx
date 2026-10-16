@@ -360,7 +360,12 @@ export default function ProjectPortal({
           </button>
         </div>
 
-        <OrbitMock title={currentProject.title} tags={currentProject.tags} />
+        <OrbitMock
+          key={currentProject.slug}
+          title={currentProject.title}
+          tags={currentProject.tags}
+          slug={currentProject.slug}
+        />
       </div>
     </div>
   );

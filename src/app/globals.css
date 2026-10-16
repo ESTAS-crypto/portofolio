@@ -1078,6 +1078,55 @@ footer {
   background: rgba(255, 255, 255, 0.22);
 }
 
+.mock.mock-shot {
+  aspect-ratio: 16 / 10;
+  width: min(85%, 440px);
+  background: #0b1522;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  flex-direction: column;
+}
+
+.mock.mock-shot::after {
+  display: none;
+}
+
+.mock.mock-shot .mk-bar {
+  position: relative;
+  height: 32px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.mock.mock-shot .mk-url {
+  margin-left: 8px;
+  font: 500 11px/1 monospace;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 10px;
+  border-radius: 999px;
+  max-width: 75%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock.mock-shot .mk-img {
+  width: 100%;
+  height: calc(100% - 32px);
+  object-fit: cover;
+  display: block;
+  background: #0a111c;
+  border-radius: 0 0 17px 17px;
+}
+
 .orbit {
   position: absolute;
   left: 50%;
