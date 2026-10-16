@@ -3921,9 +3921,6 @@ html[data-tod="night"] #hero::before,
   gap: 8px;
   margin-top: 18px;
 }
-.cvprint {
-  display: none;
-}
 
 .dbar {
   height: 8px;
@@ -3991,43 +3988,6 @@ i.tb {
   background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), transparent 70%);
 }
 
-/* Print styles for CV (F15) */
-@media print {
-  body > *:not(#sumOv) {
-    display: none !important;
-  }
-  #sumOv {
-    position: static !important;
-    background: #fff !important;
-    padding: 0 !important;
-    opacity: 1 !important;
-    display: block !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-  #sumOv .ovp {
-    max-height: none !important;
-    overflow: visible !important;
-    box-shadow: none !important;
-    background: #fff !important;
-    color: #111 !important;
-    border: 0 !important;
-    transform: none !important;
-    width: 100% !important;
-  }
-  #sumOv .ovp * {
-    color: #111 !important;
-    background: none !important;
-    border-color: #ccc !important;
-  }
-  #sumOv .ovx,
-  #sumOv .act {
-    display: none !important;
-  }
-  #sumOv .cvprint {
-    display: block !important;
-  }
-}
 
 /* F21: Project Detail Page (/proyek/[slug]) */
 .prj-page {

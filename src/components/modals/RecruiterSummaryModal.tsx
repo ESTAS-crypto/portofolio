@@ -3,142 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { oceanStore } from "@/lib/oceanStore";
 import { siteConfig } from "@/data/site";
-import { projects } from "@/data/projects";
 
 interface RecruiterSummaryModalProps {
   isOpen: boolean;
   onClose: () => void;
   openerElement?: HTMLElement | null;
-}
-
-const CVT: [string, number, number, number][] = [
-  ["Evan Atharasya", 22, 1, 0],
-  ["Full-stack developer | Indonesia", 11, 0, 2],
-  ["evanatharasya@gmail.com | github.com/ESTAS-crypto | linkedin.com/in/evanatharasya", 9, 0, 4],
-  ["Portofolio: portofolio-evan-atharasya.vercel.app", 9, 0, 1],
-  ["RINGKASAN", 10, 1, 18],
-  [
-    "Full-stack developer dari Indonesia yang membangun aplikasi web, bot, dan alat berbasis AI. Menyukai antarmuka yang nyaman dan kode yang rapi.",
-    10,
-    0,
-    4,
-  ],
-  ["PROYEK UNGGULAN", 10, 1, 16],
-  ["LUVENCE ID - React, Three.js, Supabase", 10.5, 1, 6],
-  ["luvence-id.vercel.app", 9, 0, 1],
-  ["VendTrack - Next.js, TypeScript, Supabase", 10.5, 1, 6],
-  ["vend-finder.vercel.app", 9, 0, 1],
-  ["Laporan Kunjungan Rumah - Flutter, Supabase (proyek privat)", 10.5, 1, 6],
-  ["PROYEK LAINNYA", 10, 1, 16],
-  ["Tryout SNBT - JavaScript", 10, 0, 4],
-  ["GenZMart PRO - PHP", 10, 0, 3],
-  ["AI Chatbot Next.js - TypeScript, Next.js", 10, 0, 3],
-  ["AI Gratis - JavaScript", 10, 0, 3],
-  ["Manajemen Keuangan - PHP", 10, 0, 3],
-  ["Track Location - Python", 10, 0, 3],
-  ["Sistem Laporan - JavaScript", 10, 0, 3],
-  ["KEAHLIAN", 10, 1, 16],
-  [
-    "JavaScript, TypeScript, PHP, Python, React, Next.js, Node.js, Laravel, Flutter, Three.js, Tailwind, Bootstrap, MySQL, MongoDB, Firebase, Supabase, Docker, Git",
-    10,
-    0,
-    4,
-  ],
-  ["KONTAK", 10, 1, 16],
-  ["Email: evanatharasya@gmail.com", 10, 0, 4],
-  ["GitHub: github.com/ESTAS-crypto", 10, 0, 3],
-  ["LinkedIn: linkedin.com/in/evanatharasya", 10, 0, 3],
-];
-
-export function makePDF(): Uint8Array {
-  const PW = 595;
-  const PH = 842;
-  const M = 56;
-  const mw = PW - 2 * M;
-  const pages: string[][] = [[]];
-  const esc = (t: string) =>
-    t
-      .replace(/[^\x20-\x7e]/g, "")
-      .replace(/\\/g, "\\\\")
-      .replace(/\(/g, "\\(")
-      .replace(/\)/g, "\\)");
-  let y = PH - M;
-
-  for (const it of CVT) {
-    const t = it[0];
-    const sz = it[1];
-    const bold = it[2] === 1;
-    const lh = sz * 1.4;
-    const cpl = Math.floor(mw / (sz * 0.54));
-    y -= it[3];
-    const rows: string[] = [];
-    let line = "";
-    for (const w of t.split(" ")) {
-      if (line && (line + " " + w).length > cpl) {
-        rows.push(line);
-        line = w;
-      } else {
-        line = line ? line + " " + w : w;
-      }
-    }
-    if (line) rows.push(line);
-
-    for (const r of rows) {
-      if (y - lh < M) {
-        pages.push([]);
-        y = PH - M;
-      }
-      pages[pages.length - 1].push(
-        "BT /F" + (bold ? 2 : 1) + " " + sz + " Tf " + M + " " + (y - sz).toFixed(1) + " Td (" + esc(r) + ") Tj ET"
-      );
-      y -= lh;
-    }
-  }
-
-  const objs: string[] = [];
-  const add = (o: string) => objs.push(o);
-  add("<< /Type /Catalog /Pages 2 0 R >>");
-  add("");
-  add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
-  add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
-  add("<< /Title (CV Evan Atharasya) /Author (Evan Atharasya) >>");
-
-  const kids: string[] = [];
-  for (const pg of pages) {
-    const body = pg.join("\n");
-    add("<< /Length " + body.length + " >>\nstream\n" + body + "\nendstream");
-    const c = objs.length;
-    add(
-      "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " +
-        PW +
-        " " +
-        PH +
-        "] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents " +
-        c +
-        " 0 R >>"
-    );
-    kids.push(objs.length + " 0 R");
-  }
-  objs[1] = "<< /Type /Pages /Count " + kids.length + " /Kids [" + kids.join(" ") + "] >>";
-
-  let out = "%PDF-1.4\n";
-  const off: number[] = [];
-  objs.forEach((o, i) => {
-    off.push(out.length);
-    out += i + 1 + " 0 obj\n" + o + "\nendobj\n";
-  });
-  const x = out.length;
-  out +=
-    "xref\n0 " +
-    (objs.length + 1) +
-    "\n0000000000 65535 f \n" +
-    off.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("") +
-    "trailer\n<< /Size " +
-    (objs.length + 1) +
-    " /Root 1 0 R /Info 5 0 R >>\nstartxref\n" +
-    x +
-    "\n%%EOF\n";
-  return new TextEncoder().encode(out);
 }
 
 const FEATURED = [
@@ -245,7 +114,8 @@ export default function RecruiterSummaryModal({
     } catch (_) {}
 
     try {
-      const bytes = makePDF();
+      const { makePDF } = await import("@/lib/cv/makePdf");
+      const { bytes } = makePDF();
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -256,7 +126,7 @@ export default function RecruiterSummaryModal({
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     } catch (_) {
-      oceanStore.toast("Gagal mengunduh CV", { p: 0 });
+      oceanStore.toast("Unduhan tidak tersedia di tampilan ini", { p: 0 });
     }
   };
 
@@ -334,21 +204,6 @@ export default function RecruiterSummaryModal({
           <button type="button" id="cvBtn" onClick={handleDownloadCV}>
             Unduh CV (PDF)
           </button>
-        </div>
-
-        {/* Print template for window.print() */}
-        <div className="cvprint">
-          <h3>Semua Proyek</h3>
-          <ul>
-            {projects.map((p) => (
-              <li key={p.title}>
-                <b>{p.title}</b> — {p.tags.join(", ")}
-              </li>
-            ))}
-          </ul>
-          <p>
-            {siteConfig.email} · github.com/ESTAS-crypto · linkedin.com/in/evanatharasya
-          </p>
         </div>
       </div>
     </div>
