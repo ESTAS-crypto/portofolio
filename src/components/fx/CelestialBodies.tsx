@@ -22,18 +22,22 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
     const hero = cel?.closest("#hero") as HTMLElement | null;
     if (!cel || !moon || !hero) return;
     function render() {
-      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor, isNight, sunColor, skyTop, skyBottom } = skyEngine.sky;
+      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor, isNight, sunColor, skyTop, skyBottom, cloudColor } = skyEngine.sky;
       const W = hero!.clientWidth;
       const H = hero!.clientHeight;
 
       cel!.style.transform = `translate3d(${(sunX * W / 100).toFixed(1)}px,${(sunY * H / 100).toFixed(1)}px,0)`;
       moon!.style.transform = `translate3d(${(moonX * W / 100).toFixed(1)}px,${(moonY * H / 100).toFixed(1)}px,0)`;
 
-      hero!.style.setProperty("--stars", starOpacity.toFixed(3));
-      hero!.style.setProperty("--clo", cloudOpacity.toFixed(3));
+      if (!hero!.style.getPropertyValue("--clo")) {
+        hero!.style.setProperty("--clo", cloudOpacity.toFixed(3));
+      }
       hero!.style.setProperty("--hc", heroTextColor);
       hero!.style.setProperty("--bc", birdColor);
       hero!.style.setProperty("--sun", sunColor);
+      if (!hero!.style.getPropertyValue("--cc")) {
+        hero!.style.setProperty("--cc", cloudColor);
+      }
       hero!.style.setProperty("--h1", skyTop);
       hero!.style.setProperty("--h2", skyBottom);
       hero!.dataset.tod = isNight ? "night" : "day";
