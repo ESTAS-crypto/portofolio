@@ -13,12 +13,13 @@ import CelestialBodies from "@/components/fx/CelestialBodies";
 import TimePanel from "@/components/fx/TimePanel";
 import WeatherCanvas from "@/components/fx/WeatherCanvas";
 
+import { skyEngine } from "@/lib/skyTimeEngine";
+
 interface HeroProps {
-  isNight: boolean;
   reducedMotion?: boolean;
 }
 
-export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
+export default function Hero({ reducedMotion = false }: HeroProps) {
   const heroRef = useRef<HTMLElement>(null);
   const nameChars = Array.from(siteConfig.name);
 
@@ -100,14 +101,14 @@ export default function Hero({ isNight, reducedMotion = false }: HeroProps) {
           0
         );
     },
-    { scope: heroRef, dependencies: [reducedMotion, isNight], revertOnUpdate: true }
+    { scope: heroRef, dependencies: [reducedMotion], revertOnUpdate: true }
   );
 
   return (
     <header
       id="hero"
       ref={heroRef}
-      data-tod={isNight ? "night" : "day"}
+      data-tod={skyEngine.sky.isNight ? "night" : "day"}
     >
       <SkyFx />
       <CelestialBodies reducedMotion={reducedMotion} />

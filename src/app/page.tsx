@@ -6,7 +6,6 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { LenisProvider, useLenis } from "@/hooks/useLenis";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceMonitor";
-import { useNightMode } from "@/hooks/useNightMode";
 import { siteConfig } from "@/data/site";
 import { oceanStore } from "@/lib/oceanStore";
 import { audioEngine } from "@/lib/audioEngine";
@@ -40,7 +39,6 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
   usePerformanceMonitor();
-  const isNight = useNightMode();
   const { scrollTo } = useLenis();
 
   const [portalOpen, setPortalOpen] = useState(false);
@@ -220,7 +218,7 @@ function PortfolioApp({ reducedMotion }: { reducedMotion: boolean }) {
       <SmartFavicon />
 
       <main>
-        <Hero isNight={isNight} reducedMotion={reducedMotion} />
+        <Hero reducedMotion={reducedMotion} />
         <About reducedMotion={reducedMotion} />
         <KineticMarquee reducedMotion={reducedMotion} />
         <Work onOpenProject={handleOpenProject} reducedMotion={reducedMotion} />
