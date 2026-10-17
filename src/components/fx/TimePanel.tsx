@@ -413,62 +413,87 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     [reducedMotion]
   );
 
-  // ─── Handler slider (klik = luncur halus, seret = responsif) ─
+  // ─── Handler slider (klik = luncur halus langsung tanpa loncat balik, seret = responsif) ─
   const sliderPointerRef = useRef({
     down: false,
     startX: 0,
     startTime: 0,
     startHour: 12,
+    targetHour: 12,
     hasMoved: false,
   });
 
-  const handleSliderPointerDown = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
-    touchedRef.current = true;
-    sliderPointerRef.current = {
-      down: true,
-      startX: e.clientX,
-      startTime: performance.now(),
-      startHour: skyEngine.sky.hour,
-      hasMoved: false,
-    };
-    stopDrive();
-  }, []);
-
-  const handleSliderPointerMove = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
-    if (!sliderPointerRef.current.down) return;
-    if (Math.abs(e.clientX - sliderPointerRef.current.startX) > 4) {
-      sliderPointerRef.current.hasMoved = true;
-      setAuto(false);
-      skyEngine.setAuto(false);
-      const slider = sliderRef.current;
-      if (slider) {
-        skyEngine.setHour(Number(slider.value) / 60);
-      }
-    }
-  }, []);
-
-  const handleSliderPointerUp = useCallback(() => {
-    if (!sliderPointerRef.current.down) return;
-    const { hasMoved, startHour, startTime } = sliderPointerRef.current;
-    sliderPointerRef.current.down = false;
-
+  const getHourFromClientX = useCallback((clientX: number): number => {
     const slider = sliderRef.current;
-    if (!slider) return;
+    if (!slider) return 12;
+    const rect = slider.getBoundingClientRect();
+    const pad = 9; // radius thumb (18px / 2)
+    const trackWidth = Math.max(1, rect.width - 2 * pad);
+    const offsetX = Math.min(Math.max(0, clientX - rect.left - pad), trackWidth);
+    const ratio = offsetX / trackWidth;
+    return (ratio * 1439) / 60; // 0..23.9833 jam
+  }, []);
 
-    // Jika ini adalah KLIK pada track slider (bukan menyeret lama)
-    if (!hasMoved || performance.now() - startTime < 300) {
-      const targetHour = Number(slider.value) / 60;
-      // Kembalikan ke posisi awal klik, lalu jalankan animasi pergeseran halus
-      skyEngine.setHour(startHour);
-      driveTo(targetHour, 1.6);
-    }
-  }, [driveTo]);
+  const handleSliderPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLInputElement>) => {
+      // Cegah loncatan instan bawaan browser pada input range
+      e.preventDefault();
+      touchedRef.current = true;
+      stopDrive();
+
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {}
+
+      const clickedHour = getHourFromClientX(e.clientX);
+      sliderPointerRef.current = {
+        down: true,
+        startX: e.clientX,
+        startTime: performance.now(),
+        startHour: skyEngine.sky.hour,
+        targetHour: clickedHour,
+        hasMoved: false,
+      };
+    },
+    [getHourFromClientX]
+  );
+
+  const handleSliderPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLInputElement>) => {
+      if (!sliderPointerRef.current.down) return;
+      if (Math.abs(e.clientX - sliderPointerRef.current.startX) > 4) {
+        sliderPointerRef.current.hasMoved = true;
+        setAuto(false);
+        skyEngine.setAuto(false);
+        const hour = getHourFromClientX(e.clientX);
+        skyEngine.setHour(hour);
+      }
+    },
+    [getHourFromClientX]
+  );
+
+  const handleSliderPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLInputElement>) => {
+      if (!sliderPointerRef.current.down) return;
+      const { hasMoved, targetHour } = sliderPointerRef.current;
+      sliderPointerRef.current.down = false;
+
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
+
+      // Jika hanya KLIK: luncurkan animasi halus langsung dari posisi saat ini tanpa loncat balik!
+      if (!hasMoved) {
+        driveTo(targetHour, 1.6);
+      }
+    },
+    [driveTo]
+  );
 
   const handleSliderInput = useCallback(() => {
     const slider = sliderRef.current;
     if (!slider) return;
-    // Jika sedang di-klik tanpa drag, biarkan pointerup yang menjalankan animasi luncur
-    if (sliderPointerRef.current.down && !sliderPointerRef.current.hasMoved) {
+    if (sliderPointerRef.current.down) {
       return;
     }
     stopDrive();
