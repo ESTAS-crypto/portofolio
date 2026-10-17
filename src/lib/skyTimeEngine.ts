@@ -126,6 +126,7 @@ export interface SkyState {
   skyTop: string;         // warna gradient CSS
   skyBottom: string;
   cloudColor: string;
+  cloudColorRgb: [number, number, number];
   sunColor: string;
   heroTextColor: string;
   birdColor: string;
@@ -199,6 +200,7 @@ class SkyTimeEngine {
       moonX: 50, moonY: 50,
       skyTop: "", skyBottom: "",
       cloudColor: "",
+      cloudColorRgb: [255, 255, 255],
       sunColor: "#ffe9b0",
       heroTextColor: "",
       birdColor: "",
@@ -436,6 +438,7 @@ class SkyTimeEngine {
     this.sky.moonY = moonY;
     this.sky.skyTop = rgb(t);
     this.sky.skyBottom = rgb(b);
+    this.sky.cloudColorRgb = [Math.round(cc[0]), Math.round(cc[1]), Math.round(cc[2])];
     this.sky.cloudColor = rgb(cc);
     this.sky.sunColor = rgb(sunColor);
     this.sky.heroTextColor = rgb(heroText);

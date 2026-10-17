@@ -508,6 +508,9 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
 
     let lastRate = 1;
     let cvEmpty = 0;
+    let lastCc = "";
+    let lastClf = "";
+    let lastClo = -1;
 
     const tick = (t: number, dtms?: number) => {
       const dt = Math.min(0.05, (dtms || 16) / 1000);
@@ -538,11 +541,110 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
       }
 
       L.cool = Math.max(0, L.cool - dt);
+      if (L.d && L.f < 0.12) {
+        L.f = 0.7;
+        L.d = 0;
+      }
+      L.f *= Math.exp(-dt * 7);
       S.gust *= Math.exp(-dt * 1.6);
       S.flare *= Math.exp(-dt * 1.6);
 
       const n = skyEngine.sky.nightFactor || 0;
       audioEngine.seasonTick(dt, w, S.gust, n);
+
+      // Update DOM clouds (--cc, --clf, --clo) to match active weather/season & lightning
+      const baseRgb = skyEngine.sky.cloudColorRgb || [255, 255, 255];
+      let cr = baseRgb[0];
+      let cg = baseRgb[1];
+      let cb = baseRgb[2];
+
+      const wH = w.hujan || 0;
+      const wS = w.salju || 0;
+      const wG = w.gugur || 0;
+      const wK = w.kemarau || 0;
+      const wSemi = w.semi || 0;
+
+      if (wH > 0.002) {
+        // Rain/Thunderstorm: Moody slate dark storm cloud, flashes brilliantly with lightning (L.f)
+        const fl = L.f || 0;
+        const sR = lerp(lerp(65, 30, n), 235, fl);
+        const sG = lerp(lerp(76, 36, n), 242, fl);
+        const sB = lerp(lerp(96, 50, n), 255, fl);
+        cr = lerp(cr, sR, wH);
+        cg = lerp(cg, sG, wH);
+        cb = lerp(cb, sB, wH);
+      }
+      if (wS > 0.002) {
+        // Snow: Silvery frosty overcast
+        const sR = lerp(205, 105, n);
+        const sG = lerp(218, 120, n);
+        const sB = lerp(235, 148, n);
+        cr = lerp(cr, sR, wS);
+        cg = lerp(cg, sG, wS);
+        cb = lerp(cb, sB, wS);
+      }
+      if (wG > 0.002) {
+        // Autumn: Warm sepia/amber overcast
+        const sR = lerp(238, 150, n);
+        const sG = lerp(222, 130, n);
+        const sB = lerp(206, 120, n);
+        cr = lerp(cr, sR, wG);
+        cg = lerp(cg, sG, wG);
+        cb = lerp(cb, sB, wG);
+      }
+      if (wK > 0.002) {
+        // Heatwave: Warm sunlit golden tint
+        const sR = 255;
+        const sG = lerp(246, 200, n);
+        const sB = lerp(225, 170, n);
+        cr = lerp(cr, sR, wK);
+        cg = lerp(cg, sG, wK);
+        cb = lerp(cb, sB, wK);
+      }
+      if (wSemi > 0.002) {
+        // Spring: Soft fresh rose/morning tint
+        const sR = 255;
+        const sG = lerp(250, 195, n);
+        const sB = lerp(252, 215, n);
+        cr = lerp(cr, sR, wSemi);
+        cg = lerp(cg, sG, wSemi);
+        cb = lerp(cb, sB, wSemi);
+      }
+
+      const ccStr = `rgb(${Math.round(cr)},${Math.round(cg)},${Math.round(cb)})`;
+      if (ccStr !== lastCc) {
+        hero.style.setProperty("--cc", ccStr);
+        lastCc = ccStr;
+      }
+
+      // Atmospheric drop-shadows & lightning glow
+      let filterVal = "none";
+      if (wH > 0.05) {
+        const fl = L.f || 0;
+        if (fl > 0.05) {
+          const glow = Math.round(20 * fl);
+          filterVal = `drop-shadow(0 0 ${glow}px rgba(210, 230, 255, ${(0.85 * fl).toFixed(2)})) drop-shadow(0 14px 28px rgba(15, 23, 42, ${(0.55 * wH).toFixed(2)}))`;
+        } else {
+          filterVal = `drop-shadow(0 14px 28px rgba(15, 23, 42, ${(0.55 * wH).toFixed(2)}))`;
+        }
+      } else if (wS > 0.05) {
+        filterVal = `drop-shadow(0 10px 24px rgba(130, 160, 200, ${(0.35 * wS).toFixed(2)}))`;
+      } else if (wG > 0.05) {
+        filterVal = `drop-shadow(0 10px 22px rgba(90, 50, 20, ${(0.25 * wG).toFixed(2)}))`;
+      }
+
+      if (filterVal !== lastClf) {
+        hero.style.setProperty("--clf", filterVal);
+        lastClf = filterVal;
+      }
+
+      // Cloud opacity: storm clouds stay dense even at night
+      const baseClo = skyEngine.sky.cloudOpacity ?? 0.93;
+      const targetClo = lerp(baseClo, 0.94, Math.max(wH, wS * 0.8));
+      if (Math.abs(targetClo - lastClo) > 0.01) {
+        hero.style.setProperty("--clo", targetClo.toFixed(3));
+        lastClo = targetClo;
+      }
 
       if (!SE.some((s) => s !== "cerah" && w[s] > 0.01)) {
         if (!cvEmpty) {
@@ -754,12 +856,6 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
         }
       }
 
-      if (L.d && L.f < 0.12) {
-        L.f = 0.7;
-        L.d = 0;
-      }
-      L.f *= Math.exp(-dt * 7);
-
       if (L.f > 0.01) {
         ctx.fillStyle = `rgba(235,240,255,${(L.f * 0.42 * fade).toFixed(3)})`;
         ctx.fillRect(0, 0, W, H);
@@ -929,6 +1025,9 @@ export default function WeatherCanvas({ reducedMotion = false }: WeatherCanvasPr
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerleave", handlePointerLeave);
+      hero.style.removeProperty("--cc");
+      hero.style.removeProperty("--clf");
+      hero.style.removeProperty("--clo");
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [reducedMotion]);

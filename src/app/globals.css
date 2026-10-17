@@ -2920,7 +2920,10 @@ html[data-tod="night"] #hero::before,
 }
 
 #hero .cl {
+  color: var(--cc, #fff) !important;
   opacity: var(--clo, 0.93) !important;
+  filter: var(--clf, none) !important;
+  transition: color 0.2s ease-out, filter 0.25s ease-out;
 }
 
 #hero .sun {
