@@ -387,10 +387,90 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
     return () => window.removeEventListener("scroll", fade);
   }, []);
 
-  // ─── Handler slider ───────────────────────────────────
+  // ─── Peralihan waktu halus (driveTo) ───────────────────
+  const driveTo = useCallback(
+    (targetHour: number, dur = 1.8) => {
+      stopDrive();
+      setAuto(false);
+      skyEngine.setAuto(false);
+      if (gsap && !reducedMotion) {
+        const o = { v: skyEngine.sky.hour };
+        const d = ((targetHour - o.v + 36) % 24) - 12;
+        const tween = gsap.to(o, {
+          v: o.v + d,
+          duration: dur,
+          ease: "sine.inOut",
+          onUpdate: () => skyEngine.setHour(o.v),
+          onComplete: () => {
+            driveRef.current = null;
+          },
+        });
+        driveRef.current = tween;
+      } else {
+        skyEngine.setHour(targetHour);
+      }
+    },
+    [reducedMotion]
+  );
+
+  // ─── Handler slider (klik = luncur halus, seret = responsif) ─
+  const sliderPointerRef = useRef({
+    down: false,
+    startX: 0,
+    startTime: 0,
+    startHour: 12,
+    hasMoved: false,
+  });
+
+  const handleSliderPointerDown = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
+    touchedRef.current = true;
+    sliderPointerRef.current = {
+      down: true,
+      startX: e.clientX,
+      startTime: performance.now(),
+      startHour: skyEngine.sky.hour,
+      hasMoved: false,
+    };
+    stopDrive();
+  }, []);
+
+  const handleSliderPointerMove = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
+    if (!sliderPointerRef.current.down) return;
+    if (Math.abs(e.clientX - sliderPointerRef.current.startX) > 4) {
+      sliderPointerRef.current.hasMoved = true;
+      setAuto(false);
+      skyEngine.setAuto(false);
+      const slider = sliderRef.current;
+      if (slider) {
+        skyEngine.setHour(Number(slider.value) / 60);
+      }
+    }
+  }, []);
+
+  const handleSliderPointerUp = useCallback(() => {
+    if (!sliderPointerRef.current.down) return;
+    const { hasMoved, startHour, startTime } = sliderPointerRef.current;
+    sliderPointerRef.current.down = false;
+
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    // Jika ini adalah KLIK pada track slider (bukan menyeret lama)
+    if (!hasMoved || performance.now() - startTime < 300) {
+      const targetHour = Number(slider.value) / 60;
+      // Kembalikan ke posisi awal klik, lalu jalankan animasi pergeseran halus
+      skyEngine.setHour(startHour);
+      driveTo(targetHour, 1.6);
+    }
+  }, [driveTo]);
+
   const handleSliderInput = useCallback(() => {
     const slider = sliderRef.current;
     if (!slider) return;
+    // Jika sedang di-klik tanpa drag, biarkan pointerup yang menjalankan animasi luncur
+    if (sliderPointerRef.current.down && !sliderPointerRef.current.hasMoved) {
+      return;
+    }
     stopDrive();
     setAuto(false);
     skyEngine.setAuto(false);
@@ -401,49 +481,18 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
   const handleChipClick = useCallback(
     (name: string, h: number) => {
       audioEngine.sf.chime(name);
-      stopDrive();
-      setAuto(false);
-      skyEngine.setAuto(false);
-      if (gsap && !reducedMotion) {
-        const o = { v: skyEngine.sky.hour };
-        const d = ((h - o.v + 36) % 24) - 12;
-        const tween = gsap.to(o, {
-          v: o.v + d,
-          duration: 1.8,
-          ease: "sine.inOut",
-          onUpdate: () => skyEngine.setHour(o.v),
-          onComplete: () => {
-            driveRef.current = null;
-          },
-        });
-        driveRef.current = tween;
-      } else {
-        skyEngine.setHour(h);
-      }
+      driveTo(h, 1.8);
     },
-    [reducedMotion]
+    [driveTo]
   );
 
   // ─── Otomatis ─────────────────────────────────────────
   const handleAuto = useCallback(() => {
     audioEngine.sf.ting();
-    stopDrive();
     setAuto(true);
     skyEngine.setAuto(true);
-    if (gsap && !reducedMotion) {
-      const target = skyEngine.realHour();
-      const o = { v: skyEngine.sky.hour };
-      const d = ((target - o.v + 36) % 24) - 12;
-      gsap.to(o, {
-        v: o.v + d,
-        duration: 1.2,
-        ease: "power2.inOut",
-        onUpdate: () => skyEngine.setHour(o.v),
-      });
-    } else {
-      skyEngine.setHour(skyEngine.realHour());
-    }
-  }, [reducedMotion]);
+    driveTo(skyEngine.realHour(), 1.4);
+  }, [driveTo]);
 
   // ─── Putar hari ───────────────────────────────────────
   const handlePlay = useCallback(() => {
@@ -565,10 +614,10 @@ export default function TimePanel({ reducedMotion = false }: TimePanelProps) {
             aria-label="Waktu di langit"
             suppressHydrationWarning
             onInput={handleSliderInput}
-            onPointerDown={() => {
-              touchedRef.current = true;
-              stopDrive();
-            }}
+            onPointerDown={handleSliderPointerDown}
+            onPointerMove={handleSliderPointerMove}
+            onPointerUp={handleSliderPointerUp}
+            onPointerCancel={handleSliderPointerUp}
           />
         </div>
 
