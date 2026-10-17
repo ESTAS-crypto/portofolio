@@ -21,9 +21,8 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
     const sh = shRef.current;
     const hero = cel?.closest("#hero") as HTMLElement | null;
     if (!cel || !moon || !hero) return;
-
     function render() {
-      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor, isNight } = skyEngine.sky;
+      const { sunX, sunY, moonX, moonY, starOpacity, cloudOpacity, heroTextColor, birdColor, isNight, sunColor, skyTop, skyBottom } = skyEngine.sky;
       const W = hero!.clientWidth;
       const H = hero!.clientHeight;
 
@@ -34,7 +33,11 @@ export default function CelestialBodies({ reducedMotion = false }: { reducedMoti
       hero!.style.setProperty("--clo", cloudOpacity.toFixed(3));
       hero!.style.setProperty("--hc", heroTextColor);
       hero!.style.setProperty("--bc", birdColor);
+      hero!.style.setProperty("--sun", sunColor);
+      hero!.style.setProperty("--h1", skyTop);
+      hero!.style.setProperty("--h2", skyBottom);
       hero!.dataset.tod = isNight ? "night" : "day";
+      document.documentElement.dataset.tod = isNight ? "night" : "day";
 
       // Moon phase SVG
       if (lit && sh) {
